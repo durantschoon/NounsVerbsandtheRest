@@ -1,4 +1,4 @@
-import { Grid } from '@mui/material';
+import { Box, Grid } from '@mui/material';
 import Radio from '@mui/material/Radio';
 import RadioGroup from '@mui/material/RadioGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
@@ -8,6 +8,7 @@ import FormLabel from '@mui/material/FormLabel';
 import {useState, useEffect} from 'react'
 import {Tagger, Lexer} from 'parts-of-speech'
 
+import Tooltipped from './ToolTipped.jsx'
 import "./InputText.css";
 
 const defaultTextLines = `Sonnet 60: Like As The Waves Make Towards The Pebbled Shore
@@ -27,6 +28,9 @@ And nothing stands but for his scythe to mow:
   And yet to times in hope, my verse shall stand
   Praising thy worth, despite his cruel hand.
 `.split('\n')
+
+
+  
 
 function InputText(props) {
     const [textLines, setTextLines] = useState(defaultTextLines)
@@ -62,24 +66,30 @@ function InputText(props) {
                 <h1> Choose your Natural Language Parser </h1>
                 <div>
                 <FormControl>
-                    <FormLabel id="demo-radio-buttons-group-label">Parsers</FormLabel>
+                    <FormLabel id="parsers-radio-buttons-group-label">Parsers</FormLabel>
                     <RadioGroup
                         row
-                        aria-labelledby="demo-radio-buttons-group-label"
-                        defaultValue="Parts-of-Speech"
+                        aria-labelledby="parsers-radio-buttons-group-label"
+                        defaultValue="parts-of-speech"
                         name="radio-buttons-group"
                     >
                         <FormControlLabel value="parts-of-speech" control={<Radio />} label="Parts-of-Speech" />
                         <FormControlLabel value="en-pos" control={<Radio />} label="en-pos" />
                     </RadioGroup>
                 </FormControl> 
+
                     <div id="parser-descriptions">
-                        <dl>
-                            <dt><a href="https://github.com/dariusk/pos-js#readme" target="_blank">Parts-of-Speech</a></dt>
-                            <dl>Javascript port of Mark Watson's FastTag Part of Speech Tagger which was itself based on Eric Brill's trained rule set and English lexicon</dl>
-                            <dt><a href="https://github.com/finnlp/en-pos#readme" target="_blank">en-pos</a></dt>
-                            <dl>A better English POS tagger written in JavaScript</dl>
-                        </dl>
+                        <Tooltipped 
+                            title="Parts-of-Speech"
+                            body="Javascript port of Mark Watson's FastTag Part of Speech Tagger which was itself based on Eric Brill's trained rule set and English lexicon"
+                            link="https://github.com/dariusk/pos-js#readme"
+                        />
+                        {"    "}
+                        <Tooltipped 
+                            title="en-pos"
+                            body="A better English POS tagger written in JavaScript"
+                            link="https://github.com/finnlp/en-pos#readme"
+                        />
                     </div>
                 </div>
                 <h1> Correct what is and is not a noun </h1>
