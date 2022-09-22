@@ -35,7 +35,7 @@ And nothing stands but for his scythe to mow:
 function InputText(props) {
     const [textLines, setTextLines] = useState(defaultTextLines)
 
-    const tagWords = (tagged) => {
+    const addNounSpans = (tagged) => {
         return tagged.map( ([word, tag]) => {
             if (tag === 'NN' || tag === 'NNS') {
                 return `<span class="noun">${word}</span>` // html not JSX so 'class' not 'className'
@@ -50,7 +50,7 @@ function InputText(props) {
             let words = new Lexer().lex(line);
             let tagger = new Tagger();
             let taggedWords = tagger.tag(words);
-            outlined.push(tagWords(taggedWords))
+            outlined.push(addNounSpans(taggedWords))
         }
         document.getElementById("text-output").innerHTML = outlined.join('<br>')
     }, [textLines])
