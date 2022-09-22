@@ -52,6 +52,11 @@ const tagWordsInLine = {
     }
 }
 
+const punct = /([.,\/#!$%\^&\*;:{}=\-_`~()]+)/gm
+const spacePunct = /([\s.,\/#!$%\^&\*;:{}=\-_`~()]+)/gm
+const notSpacePunct = /([^\s.,\/#!$%\^&\*;:{}=\-_`~()]+)/gm
+const UNICODE_NBSP = "\u00A0"
+
 function InputText(props) {
     const [textLines, setTextLines] = useState(defaultTextLines)
     const [parser, setParser] = useState(defaultParser)
@@ -62,20 +67,45 @@ function InputText(props) {
                 return `<span class="noun">${word}</span>` // html not JSX so 'class' not 'className'
             }
             return `<span class="non-noun">${word}</span>`
-        }).join(' ')
+        })
     }
 
     useEffect( () => {
         let outlined = []
+
+        let count = 0 // debug
+
         for (const line of textLines) {
-            let taggedWords = tagWordsInLine[parser](line);
-            outlined.push(addNounSpans(taggedWords))
+            if (line === '') {
+                outlined.push('')
+                continue
+            }
+            const matchedSpacePunct = line.match(spacePunct).map( s => s.replace(/ /g, UNICODE_NBSP) )
+            console.log(count, 'spacePunct', matchedSpacePunct)
+            console.log(count++, 'notSpacePunct', line.match(notSpacePunct))
+
+            let taggedWords = tagWordsInLine[parser](line.replaceAll(punct, ''));
+            let first, second
+            if (line[0].match(/\s/)) {
+                first = matchedSpacePunct
+                second = addNounSpans(taggedWords)
+            } else {
+                first = addNounSpans(taggedWords)
+                second = matchedSpacePunct
+            }
+            console.log('first', first)
+            console.log('second', second)
+            console.log('zipped', R.zip(first, second))
+            console.log('unnested',R.unnest(R.zip(first, second)))
+            const recombined = R.unnest(R.zip(first, second)).join('')
+            console.log('recombined', recombined)
+            outlined.push(recombined)
         }
         document.getElementById("text-output").innerHTML = outlined.join('<br>')
     }, [textLines, parser])
 
     function handleParserChange (event) {
-        const {name, value} = event.target
+        const {value} = event.target
         setParser(value)
     }
 
@@ -89,21 +119,6 @@ function InputText(props) {
             <Grid item xs={6}>
                 <h1> Choose your Natural Language Parser </h1>
                 <div>
-                <FormControl>
-                    <FormLabel id="parsers-radio-buttons-group-label">Parsers</FormLabel>
-                    <RadioGroup
-                        row
-                        aria-labelledby="parsers-radio-buttons-group-label"
-                        defaultValue={defaultParser}
-                        name="parser"
-                        value={parser}
-                        onChange={handleParserChange}
-                    >
-                        <FormControlLabel value="parts-of-speech" control={<Radio />} label="Parts-of-Speech" />
-                        <FormControlLabel value="en-pos" control={<Radio />} label="en-pos" />
-                    </RadioGroup>
-                </FormControl> 
-
                     <div id="parser-descriptions">
                         <Tooltipped 
                             title="Parts-of-Speech"
@@ -117,6 +132,20 @@ function InputText(props) {
                             link="https://github.com/finnlp/en-pos#readme"
                         />
                     </div>
+                    <FormControl>
+                        <FormLabel id="parsers-radio-buttons-group-label">Parsers</FormLabel>
+                        <RadioGroup
+                            row
+                            aria-labelledby="parsers-radio-buttons-group-label"
+                            defaultValue={defaultParser}
+                            name="parser"
+                            value={parser}
+                            onChange={handleParserChange}
+                        >
+                            <FormControlLabel value="parts-of-speech" control={<Radio />} label="Parts-of-Speech" />
+                            <FormControlLabel value="en-pos" control={<Radio />} label="en-pos" />
+                        </RadioGroup>
+                    </FormControl> 
                 </div>
                 <h1> Correct what is and is not a noun </h1>
                 <ul>
