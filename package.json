@@ -12,6 +12,10 @@
     "@emotion/styled": "latest",
     "@mui/icons-material": "^5.10.6",
     "@mui/material": "latest",
+    "en-pos": "^1.0.16",
+    "oauth": "^0.10.0",
+    "parts-of-speech": "^0.3.0",
+    "ramda": "^0.28.0",
     "react": "latest",
     "react-dom": "latest"
   },

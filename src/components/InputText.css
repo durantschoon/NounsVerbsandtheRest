@@ -1,0 +1,25 @@
+textarea {
+    height: 24rem;
+}
+
+#text-output {
+    border: 1px solid #000;
+}
+
+textarea, #text-output {
+    min-width: 400px;
+    width: 50%;
+    padding: 2px;
+}
+
+
+.noun {
+    border: 1px solid orange;
+    padding: 1px 3px;
+    background-color: lightyellow;
+    cursor: alias;
+}
+
+.non-noun {
+    cursor: cell;
+}

@@ -6,6 +6,8 @@ import Typography from '@mui/material/Typography';
 // import IconButton from '@mui/material/IconButton';
 // import MenuIcon from '@mui/icons-material/Menu';
 
+import InputText from './components/InputText'
+
 export default function App() {
   return (
     <Box sx={{ flexGrow: 1 }}>
@@ -29,6 +31,7 @@ export default function App() {
           <Typography variant="p" component="div" sx={{ flexGrow: 1 }}>
             version: 2022_sep14_rebuild2_app
           </Typography>
+          <InputText />
       </Box>
     </Box>
   );
