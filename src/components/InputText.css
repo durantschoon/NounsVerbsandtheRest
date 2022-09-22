@@ -8,7 +8,6 @@ textarea {
 
 textarea, #text-output {
     min-width: 400px;
-    width: 50%;
     padding: 2px;
 }
 

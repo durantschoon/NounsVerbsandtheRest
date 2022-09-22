@@ -1,4 +1,6 @@
-import { Box, Grid } from '@mui/material';
+import PropTypes from 'prop-types';
+
+import { Grid } from '@mui/material';
 import Radio from '@mui/material/Radio';
 import RadioGroup from '@mui/material/RadioGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
@@ -7,9 +9,13 @@ import FormLabel from '@mui/material/FormLabel';
 
 import {useState, useEffect} from 'react'
 import {Tagger, Lexer} from 'parts-of-speech'
+import {Tag} from "en-pos"
+import * as R from 'ramda'
 
 import Tooltipped from './ToolTipped.jsx'
 import "./InputText.css";
+
+const defaultParser = 'parts-of-speech'  
 
 const defaultTextLines = `Sonnet 60: Like As The Waves Make Towards The Pebbled Shore
 
@@ -29,11 +35,26 @@ And nothing stands but for his scythe to mow:
   Praising thy worth, despite his cruel hand.
 `.split('\n')
 
-
-  
+const tagWordsInLine = {
+    'parts-of-speech': (line) => {
+        let words = new Lexer().lex(line);
+        let tagger = new Tagger();
+        return tagger.tag(words);
+    },
+    'en-pos': (line) => {
+        line = line.split(" ")        
+        var tags = new Tag(line)
+            .initial() // initial dictionary and pattern based tagging
+            .smooth() // further context based smoothing
+            .tags;
+        const tagged = tags.map ( (tag, i) => [line[i], tag] )
+        return tagged
+    }
+}
 
 function InputText(props) {
     const [textLines, setTextLines] = useState(defaultTextLines)
+    const [parser, setParser] = useState(defaultParser)
 
     const addNounSpans = (tagged) => {
         return tagged.map( ([word, tag]) => {
@@ -47,13 +68,16 @@ function InputText(props) {
     useEffect( () => {
         let outlined = []
         for (const line of textLines) {
-            let words = new Lexer().lex(line);
-            let tagger = new Tagger();
-            let taggedWords = tagger.tag(words);
+            let taggedWords = tagWordsInLine[parser](line);
             outlined.push(addNounSpans(taggedWords))
         }
         document.getElementById("text-output").innerHTML = outlined.join('<br>')
-    }, [textLines])
+    }, [textLines, parser])
+
+    function handleParserChange (event) {
+        const {name, value} = event.target
+        setParser(value)
+    }
 
   return (
     <section>
@@ -70,8 +94,10 @@ function InputText(props) {
                     <RadioGroup
                         row
                         aria-labelledby="parsers-radio-buttons-group-label"
-                        defaultValue="parts-of-speech"
-                        name="radio-buttons-group"
+                        defaultValue={defaultParser}
+                        name="parser"
+                        value={parser}
+                        onChange={handleParserChange}
                     >
                         <FormControlLabel value="parts-of-speech" control={<Radio />} label="Parts-of-Speech" />
                         <FormControlLabel value="en-pos" control={<Radio />} label="en-pos" />
@@ -84,7 +110,7 @@ function InputText(props) {
                             body="Javascript port of Mark Watson's FastTag Part of Speech Tagger which was itself based on Eric Brill's trained rule set and English lexicon"
                             link="https://github.com/dariusk/pos-js#readme"
                         />
-                        {"    "}
+                        {"          "}
                         <Tooltipped 
                             title="en-pos"
                             body="A better English POS tagger written in JavaScript"
@@ -103,5 +129,9 @@ function InputText(props) {
     </section>
   )
 }
+
+// InputText.propTypes = {
+//     parser: PropTypes.oneOf(['parts-of-speech', 'en-pos']).isRequired,
+// };
 
 export default InputText;
