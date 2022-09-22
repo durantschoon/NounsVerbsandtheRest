@@ -1,4 +1,9 @@
 import { Grid } from '@mui/material';
+import Radio from '@mui/material/Radio';
+import RadioGroup from '@mui/material/RadioGroup';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import FormControl from '@mui/material/FormControl';
+import FormLabel from '@mui/material/FormLabel';
 
 import {useState, useEffect} from 'react'
 import {Tagger, Lexer} from 'parts-of-speech'
@@ -54,6 +59,29 @@ function InputText(props) {
                 <textarea value={textLines.join("\n")} id="text-input"/>
             </Grid>
             <Grid item xs={6}>
+                <h1> Choose your Natural Language Parser </h1>
+                <div>
+                <FormControl>
+                    <FormLabel id="demo-radio-buttons-group-label">Parsers</FormLabel>
+                    <RadioGroup
+                        row
+                        aria-labelledby="demo-radio-buttons-group-label"
+                        defaultValue="Parts-of-Speech"
+                        name="radio-buttons-group"
+                    >
+                        <FormControlLabel value="parts-of-speech" control={<Radio />} label="Parts-of-Speech" />
+                        <FormControlLabel value="en-pos" control={<Radio />} label="en-pos" />
+                    </RadioGroup>
+                </FormControl> 
+                    <div id="parser-descriptions">
+                        <dl>
+                            <dt><a href="https://github.com/dariusk/pos-js#readme" target="_blank">Parts-of-Speech</a></dt>
+                            <dl>Javascript port of Mark Watson's FastTag Part of Speech Tagger which was itself based on Eric Brill's trained rule set and English lexicon</dl>
+                            <dt><a href="https://github.com/finnlp/en-pos#readme" target="_blank">en-pos</a></dt>
+                            <dl>A better English POS tagger written in JavaScript</dl>
+                        </dl>
+                    </div>
+                </div>
                 <h1> Correct what is and is not a noun </h1>
                 <ul>
                     <li>Click on a word with the <span class="non-noun">Plus</span> icon to change a word INTO a noun.</li>
