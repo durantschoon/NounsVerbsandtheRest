@@ -1,3 +1,5 @@
+import { Grid } from '@mui/material';
+
 import {useState, useEffect} from 'react'
 import {Tagger, Lexer} from 'parts-of-speech'
 
@@ -46,17 +48,20 @@ function InputText(props) {
 
   return (
     <section>
-        <div className="container-fluid text-div">
-            <h1> Enter your text </h1>
-            <textarea value={textLines.join("\n")} id="text-input"/>
-            <h1> Correct what's a noun </h1>
-            <ul>
-                <li>Click on a word with the <span class="noun">Back</span> icon to change a word to NOT a noun.</li>
-                <li>Click on a word with the <span class="non-noun">Plus</span> icon to change a word to a noun.</li>
-            </ul>
-            <div id="text-output">
-            </div>
-        </div>
+        <Grid container spacing={2}>
+            <Grid item xs={6}>
+                <h1> Enter your text </h1>
+                <textarea value={textLines.join("\n")} id="text-input"/>
+            </Grid>
+            <Grid item xs={6}>
+                <h1> Correct what is and is not a noun </h1>
+                <ul>
+                    <li>Click on a word with the <span class="non-noun">Plus</span> icon to change a word INTO a noun.</li>
+                    <li>Click on a word with the <span class="noun">Back</span> icon to change a word BACK TO a non-noun.</li>
+                </ul>
+                <div id="text-output"></div>
+            </Grid>
+        </Grid>
     </section>
   )
 }
