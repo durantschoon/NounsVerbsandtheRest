@@ -1,4 +1,4 @@
-import PropTypes from 'prop-types';
+// import PropTypes from 'prop-types';
 
 import { Grid } from '@mui/material';
 import Radio from '@mui/material/Radio';
@@ -54,50 +54,92 @@ const tagWordsInLine = {
 
 const punct = /([.,\/#!$%\^&\*;:{}=\-_`~()]+)/gm
 const spacePunct = /([\s.,\/#!$%\^&\*;:{}=\-_`~()]+)/gm
-const notSpacePunct = /([^\s.,\/#!$%\^&\*;:{}=\-_`~()]+)/gm
+// const notSpacePunct = /([^\s.,\/#!$%\^&\*;:{}=\-_`~()]+)/gm
 const UNICODE_NBSP = "\u00A0"
+
+const PRE= "word"
 
 function InputText(props) {
     const [textLines, setTextLines] = useState(defaultTextLines)
     const [parser, setParser] = useState(defaultParser)
+    const [nounInverter, setNounInverter] = useState([]) // jagged array of arrays of booleans for each word in each line
 
-    const addNounSpans = (tagged) => {
+    function invertNoun(i, j) {
+        console.log('invertNoun', i, j)
+        setNounInverter( prevNounInverter => {
+            const newNounInverter = [...prevNounInverter]
+            newNounInverter[i][j] = !newNounInverter[i][j]
+            return newNounInverter
+        })
+    }
+
+    const addNounSpans = (tagged, lineNum) => {
+        let wordNum = 0
         return tagged.map( ([word, tag]) => {
             if (tag === 'NN' || tag === 'NNS') {
-                return `<span class="noun">${word}</span>` // html not JSX so 'class' not 'className'
+                return `<span class="noun" id="${PRE}_${lineNum}_${wordNum++}">${word}</span>`
             }
-            return `<span class="non-noun">${word}</span>`
+            return `<span class="non-noun" id="${PRE}_${lineNum}_${wordNum++}">${word}</span>`
         })
+    }
+
+    function addOnClicksToSpans() {
+        const classNames = ['noun', 'non-noun']
+        for (const className of classNames) {
+            const spans = document.getElementsByClassName(className)
+            for (const span of spans) {
+                span.addEventListener('click', (event) => {
+                    const [lineNum, wordNum] = event.target.id.split('_').slice(1)
+                    invertNoun(parseInt(lineNum, 10), parseInt(wordNum, 10))
+                })
+            }
+        }
     }
 
     useEffect( () => {
         let outlined = []
+        let newNounInverter
 
-        for (const line of textLines) {
+        if (nounInverter.length === 0) {
+            newNounInverter = new Array(textLines.length).fill([])
+            console.log('newNounInverter', newNounInverter)
+        } else {
+            newNounInverter = [...nounInverter]
+        }
+
+        textLines.forEach( (line, lineNum) => {        
             if (line === '') {
                 outlined.push('')
-                continue
+                return
             }
             const matchedSpacePunct = line.match(spacePunct).map( s => s.replace(/ /g, UNICODE_NBSP) )
 
             let taggedWords = tagWordsInLine[parser](line.replaceAll(punct, ''));
+            if (newNounInverter[lineNum].length === 0) {
+                newNounInverter[lineNum] = new Array(taggedWords.length).fill(false)
+                console.log(`newNounInverter[${lineNum}]`, newNounInverter[lineNum])
+            }
+
             if (matchedSpacePunct.length < taggedWords.length) {
                 matchedSpacePunct.push('')
             } else if (taggedWords.length < matchedSpacePunct.length) {
                 taggedWords.push(['', ''])
             }
+
             let first, second
             if (line[0].match(/\s/)) {
                 first = matchedSpacePunct
-                second = addNounSpans(taggedWords)
+                second = addNounSpans(taggedWords, lineNum)
             } else {
-                first = addNounSpans(taggedWords)
+                first = addNounSpans(taggedWords, lineNum)
                 second = matchedSpacePunct
             }
             const recombined = R.unnest(R.zip(first, second)).join('')
             outlined.push(recombined)
-        }
+        })
+        setNounInverter(newNounInverter)
         document.getElementById("text-output").innerHTML = outlined.join('<br>')
+        addOnClicksToSpans()
     }, [textLines, parser])
 
     function handleParserChange (event) {
