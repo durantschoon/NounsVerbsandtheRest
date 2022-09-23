@@ -7,7 +7,7 @@ Also had to run `npm i @mui/icons-material` to get the icons I needed.
 
 # ToDo
 
-fix: text should come out the same (and correctly) for both parsers
+Noun inversion should apply to a particular parser.
 # Stackblitz creation
 ## github-jfa5q4
 
