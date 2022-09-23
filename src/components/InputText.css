@@ -30,3 +30,7 @@ textarea, #text-output {
     display: flex;
     justify-content: space-evenly;
 }
+
+.inverted {
+    border: red 2px dashed;
+}

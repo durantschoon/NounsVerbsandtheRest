@@ -70,7 +70,6 @@ function InputText(props) {
 
         if (nounInverter.length === 0) {
             newNounInverter = new Array(textLines.length-1).fill([])
-            console.log('newNounInverter', newNounInverter)
         } else {
             newNounInverter = R.clone(nounInverter)
         }
@@ -85,7 +84,6 @@ function InputText(props) {
             let taggedWords = tagWordsInLine[parser](line.replaceAll(punct, ''));
             if (newNounInverter[lineNum].length === 0) {
                 newNounInverter[lineNum] = new Array(taggedWords.length).fill(false)
-                console.log(`newNounInverter[${lineNum}]`, newNounInverter[lineNum])
             }
 
             if (matchedSpacePunct.length < taggedWords.length) {
@@ -111,29 +109,28 @@ function InputText(props) {
     }
 
     function invertNoun(i, j) {
-        console.log('invertNoun', i, j)
         setNounInverter( prevNounInverter => {
             const newNounInverter = R.clone(prevNounInverter)
             newNounInverter[i][j] = !newNounInverter[i][j]
-            console.log('invertNoun', newNounInverter)
             return newNounInverter
         })
         drawNounOutlines()
     }
 
     const addNounSpans = (tagged, lineNum) => {
-        let wordNum = 0
+        let mainClass
+        let extraClasses
+        let wordNum = 0        
         return tagged.map( ([word, tag]) => {
+            extraClasses = ""
             let nounTest = (tag === 'NN' || tag === 'NNS')
             const debugOrigNounTest = nounTest
             if (nounInverter.length > 0 && nounInverter[lineNum][wordNum]) {
                 nounTest = !nounTest
+                extraClasses = "inverted"
             }
-            console.log('addNounSpans', lineNum, wordNum, debugOrigNounTest, nounTest)
-            if (nounTest) {
-                return `<span class="noun" id="${PRE}_${lineNum}_${wordNum++}">${word}</span>`
-            }
-            return `<span class="non-noun" id="${PRE}_${lineNum}_${wordNum++}">${word}</span>`
+            mainClass = nounTest ? "noun" : "non-noun"
+            return `<span class="${mainClass} ${extraClasses}" id="${PRE}_${lineNum}_${wordNum++}">${word}</span>`
         })
     }
 
