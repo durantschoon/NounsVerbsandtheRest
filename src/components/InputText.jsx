@@ -85,6 +85,11 @@ function InputText(props) {
             console.log(count++, 'notSpacePunct', line.match(notSpacePunct))
 
             let taggedWords = tagWordsInLine[parser](line.replaceAll(punct, ''));
+            if (matchedSpacePunct.length < taggedWords.length) {
+                matchedSpacePunct.push('')
+            } else if (taggedWords.length < matchedSpacePunct.length) {
+                taggedWords.push(['', ''])
+            }
             let first, second
             if (line[0].match(/\s/)) {
                 first = matchedSpacePunct
