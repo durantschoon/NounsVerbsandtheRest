@@ -64,47 +64,15 @@ function InputText(props) {
     const [parser, setParser] = useState(defaultParser)
     const [nounInverter, setNounInverter] = useState([]) // jagged array of arrays of booleans for each word in each line
 
-    function invertNoun(i, j) {
-        console.log('invertNoun', i, j)
-        setNounInverter( prevNounInverter => {
-            const newNounInverter = [...prevNounInverter]
-            newNounInverter[i][j] = !newNounInverter[i][j]
-            return newNounInverter
-        })
-    }
-
-    const addNounSpans = (tagged, lineNum) => {
-        let wordNum = 0
-        return tagged.map( ([word, tag]) => {
-            if (tag === 'NN' || tag === 'NNS') {
-                return `<span class="noun" id="${PRE}_${lineNum}_${wordNum++}">${word}</span>`
-            }
-            return `<span class="non-noun" id="${PRE}_${lineNum}_${wordNum++}">${word}</span>`
-        })
-    }
-
-    function addOnClicksToSpans() {
-        const classNames = ['noun', 'non-noun']
-        for (const className of classNames) {
-            const spans = document.getElementsByClassName(className)
-            for (const span of spans) {
-                span.addEventListener('click', (event) => {
-                    const [lineNum, wordNum] = event.target.id.split('_').slice(1)
-                    invertNoun(parseInt(lineNum, 10), parseInt(wordNum, 10))
-                })
-            }
-        }
-    }
-
-    useEffect( () => {
+    function drawNounOutlines() {
         let outlined = []
         let newNounInverter
 
         if (nounInverter.length === 0) {
-            newNounInverter = new Array(textLines.length).fill([])
+            newNounInverter = new Array(textLines.length-1).fill([])
             console.log('newNounInverter', newNounInverter)
         } else {
-            newNounInverter = [...nounInverter]
+            newNounInverter = R.clone(nounInverter)
         }
 
         textLines.forEach( (line, lineNum) => {        
@@ -137,10 +105,53 @@ function InputText(props) {
             const recombined = R.unnest(R.zip(first, second)).join('')
             outlined.push(recombined)
         })
-        setNounInverter(newNounInverter)
+        if (nounInverter.length === 0) setNounInverter(newNounInverter) // only set it once on initial load
         document.getElementById("text-output").innerHTML = outlined.join('<br>')
         addOnClicksToSpans()
-    }, [textLines, parser])
+    }
+
+    function invertNoun(i, j) {
+        console.log('invertNoun', i, j)
+        setNounInverter( prevNounInverter => {
+            const newNounInverter = R.clone(prevNounInverter)
+            newNounInverter[i][j] = !newNounInverter[i][j]
+            console.log('invertNoun', newNounInverter)
+            return newNounInverter
+        })
+        drawNounOutlines()
+    }
+
+    const addNounSpans = (tagged, lineNum) => {
+        let wordNum = 0
+        return tagged.map( ([word, tag]) => {
+            let nounTest = (tag === 'NN' || tag === 'NNS')
+            const debugOrigNounTest = nounTest
+            if (nounInverter.length > 0 && nounInverter[lineNum][wordNum]) {
+                nounTest = !nounTest
+            }
+            console.log('addNounSpans', lineNum, wordNum, debugOrigNounTest, nounTest)
+            if (nounTest) {
+                return `<span class="noun" id="${PRE}_${lineNum}_${wordNum++}">${word}</span>`
+            }
+            return `<span class="non-noun" id="${PRE}_${lineNum}_${wordNum++}">${word}</span>`
+        })
+    }
+
+    function addOnClicksToSpans() {
+        const classNames = ['noun', 'non-noun']
+        for (const className of classNames) {
+            const spans = document.getElementsByClassName(className)
+            for (const span of spans) {
+                span.addEventListener('click', (event) => {
+                    const [lineNum, wordNum] = event.target.id.split('_').slice(1)
+                    invertNoun(parseInt(lineNum, 10), parseInt(wordNum, 10))
+                    event.stopPropagation() // thought this might stop the 2nd call to invertNoun, but it doesn't
+                })
+            }
+        }
+    }
+
+    useEffect(drawNounOutlines, [textLines, parser, nounInverter])
 
     function handleParserChange (event) {
         const {value} = event.target
