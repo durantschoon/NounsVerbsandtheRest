@@ -73,8 +73,6 @@ function InputText(props) {
     useEffect( () => {
         let outlined = []
 
-        let count = 0 // debug
-
         for (const line of textLines) {
             if (line === '') {
                 outlined.push('')
@@ -96,12 +94,7 @@ function InputText(props) {
                 first = addNounSpans(taggedWords)
                 second = matchedSpacePunct
             }
-            console.log('first', first)
-            console.log('second', second)
-            console.log('zipped', R.zip(first, second))
-            console.log('unnested',R.unnest(R.zip(first, second)))
             const recombined = R.unnest(R.zip(first, second)).join('')
-            console.log('recombined', recombined)
             outlined.push(recombined)
         }
         document.getElementById("text-output").innerHTML = outlined.join('<br>')
