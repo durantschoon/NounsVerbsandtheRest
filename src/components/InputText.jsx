@@ -140,7 +140,7 @@ function InputText(props) {
     <section>
         <Grid container spacing={2}>
             <Grid item xs={6}>
-                <h1> Enter your text </h1>
+                <h1> For now, a poem... </h1>
                 <textarea value={textLines.join("\n")} id="text-input"/>
             </Grid>
             <Grid item xs={6}>
