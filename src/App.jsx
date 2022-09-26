@@ -29,8 +29,8 @@ export default function App() {
         </Toolbar>
       </AppBar>
       <Box sx={{ flexGrow: 1 }}>
-          <Typography variant="p" component="div" sx={{ flexGrow: 1 }}>
-            version: 2022_sep14_rebuild2_app
+          <Typography variant="subtitle2" component="div" sx={{ flexGrow: 1 }}>
+            <i>version: 2022_sep14_rebuild2_app</i>
           </Typography>
           <InputText />
       </Box>
