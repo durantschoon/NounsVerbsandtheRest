@@ -1,5 +1,7 @@
 import Tooltipped from './ToolTipped.jsx'
 
+import "./ParserDescriptions.css";
+
 import {Tagger, Lexer} from 'parts-of-speech'
 import {Tag} from 'en-pos'
 
@@ -44,7 +46,7 @@ const parserInfo = {
 
 function ParserDescriptions() {
     return (
-        <div id="parserName-descriptions">
+        <div id="parser-descriptions">
             <Tooltipped {...parserInfo[P.PARTS_OF_SPEECH]} />
             <Tooltipped {...parserInfo[P.EN_POS]}/>
         </div>
