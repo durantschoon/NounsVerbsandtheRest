@@ -8,91 +8,68 @@ import FormControl from '@mui/material/FormControl';
 import FormLabel from '@mui/material/FormLabel';
 
 import {useState, useEffect} from 'react'
-import {Tagger, Lexer} from 'parts-of-speech'
-import {Tag} from "en-pos"
 import * as R from 'ramda'
 
-import Tooltipped from './ToolTipped.jsx'
 import "./InputText.css";
 
-const defaultParser = 'parts-of-speech'  
+import {PARSERS as P, tagWordsInLine, ParserDescriptions} from './ParserDescriptions'
+import sonnets from '../data/sonnets.js'
 
-const defaultTextLines = `Sonnet 60: Like As The Waves Make Towards The Pebbled Shore
-
-Like as the waves make towards the pebbled shore,
-So do our minutes hasten to their end;
-Each changing place with that which goes before,
-In sequent toil all forwards do contend.
-Nativity, once in the main of light,
-Crawls to maturity, wherewith being crowned,
-Crooked eclipses ‘gainst his glory fight,
-And Time that gave doth now his gift confound.
-Time doth transfix the flourish set on youth
-And delves the parallels in beauty’s brow,
-Feeds on the rarities of nature’s truth,
-And nothing stands but for his scythe to mow:
-  And yet to times in hope, my verse shall stand
-  Praising thy worth, despite his cruel hand.
-`.split('\n')
-
-const tagWordsInLine = {
-    'parts-of-speech': (line) => {
-        let words = new Lexer().lex(line);
-        let tagger = new Tagger();
-        return tagger.tag(words);
-    },
-    'en-pos': (line) => {
-        line = R.filter(R.identity, line.split(/\s/))
-        var tags = new Tag(line)
-            .initial() // initial dictionary and pattern based tagging
-            .smooth() // further context based smoothing
-            .tags;
-        const tagged = tags.map ( (tag, i) => [line[i], tag] )
-        return tagged
-    }
-}
+const defaultParserName = P.PARTS_OF_SPEECH
+const defaultTextLines = sonnets[60].split('\n')
 
 const punct = /([.,\/#!$%\^&\*;:{}=\-_`~()]+)/gm
 const spacePunct = /([\s.,\/#!$%\^&\*;:{}=\-_`~()]+)/gm
 // const notSpacePunct = /([^\s.,\/#!$%\^&\*;:{}=\-_`~()]+)/gm
 const UNICODE_NBSP = "\u00A0"
 
-const PRE= "word"
+const PRE = "word"
 
 function InputText(props) {
     const [textLines, setTextLines] = useState(defaultTextLines)
-    const [parser, setParser] = useState(defaultParser)
-    const [nounInverter, setNounInverter] = useState([]) // jagged array of arrays of booleans for each word in each line
+    const [parserName, setParserName] = useState(defaultParserName)
+    const [nounInverters, setNounInverters] = useState({
+        [P.PARTS_OF_SPEECH]: [], 
+        [P.EN_POS]: [],
+    }) // values are jagged arrays of arrays indicating if a word at a given index (in a given line)
+    //    is an inversion from the noun-state by the parserName
+    //    e.g. nounInverters[P.PARTS_OF_SPEECH][3][7] === true 
+    //      means that the eighth word in the fourth line (for the P.PARTS_OF_SPEECH parser) has been inverted
+    //    i.e. inverted means now should be considered not-a-noun if originally a noun or vice-versa
 
     function drawNounOutlines() {
+        const nounInverter = nounInverters[parserName]
+
         let outlined = []
         let newNounInverter
 
         if (nounInverter.length === 0) {
-            newNounInverter = new Array(textLines.length-1).fill([])
+            newNounInverter = new Array(textLines.length).fill([])
         } else {
             newNounInverter = R.clone(nounInverter)
         }
 
-        textLines.forEach( (line, lineNum) => {        
+        textLines.forEach( (line, lineNum) => {      
             if (line === '') {
                 outlined.push('')
                 return
             }
             const matchedSpacePunct = line.match(spacePunct).map( s => s.replace(/ /g, UNICODE_NBSP) )
 
-            let taggedWords = tagWordsInLine[parser](line.replaceAll(punct, ''));
+            let taggedWords = tagWordsInLine[parserName](line.replaceAll(punct, ''));
             if (newNounInverter[lineNum].length === 0) {
                 newNounInverter[lineNum] = new Array(taggedWords.length).fill(false)
             }
 
+            // even out the lengths of the two arrays for zipping
             if (matchedSpacePunct.length < taggedWords.length) {
                 matchedSpacePunct.push('')
             } else if (taggedWords.length < matchedSpacePunct.length) {
                 taggedWords.push(['', ''])
             }
 
-            let first, second
+            // zip results in the correct order (i.e. starting with a space or not)
+            let first, second                
             if (line[0].match(/\s/)) {
                 first = matchedSpacePunct
                 second = addNounSpans(taggedWords, lineNum)
@@ -103,28 +80,32 @@ function InputText(props) {
             const recombined = R.unnest(R.zip(first, second)).join('')
             outlined.push(recombined)
         })
-        if (nounInverter.length === 0) setNounInverter(newNounInverter) // only set it once on initial load
+        if (nounInverter.length === 0) updateCurentNounInverter(newNounInverter) // only set it once on initial load
         document.getElementById("text-output").innerHTML = outlined.join('<br>')
-        addOnClicksToSpans()
+        addClickHandlersToSpans()
     }
 
-    function invertNoun(i, j) {
-        setNounInverter( prevNounInverter => {
-            const newNounInverter = R.clone(prevNounInverter)
-            newNounInverter[i][j] = !newNounInverter[i][j]
-            return newNounInverter
+    function updateCurentNounInverter(newNounInverter) {
+        setNounInverters({...nounInverters, [parserName]: newNounInverter})
+    }
+
+    function invertNoun(line, word) {
+        setNounInverters( prevNounInverters => {
+            const newNounInverter = R.clone(prevNounInverters[parserName])
+            newNounInverter[line][word] = !newNounInverter[line][word]
+            return {...prevNounInverters, [parserName]: newNounInverter}
         })
         drawNounOutlines()
     }
 
     const addNounSpans = (tagged, lineNum) => {
+        const nounInverter = nounInverters[parserName]
         let mainClass
         let extraClasses
         let wordNum = 0        
         return tagged.map( ([word, tag]) => {
             extraClasses = ""
             let nounTest = (tag === 'NN' || tag === 'NNS')
-            const debugOrigNounTest = nounTest
             if (nounInverter.length > 0 && nounInverter[lineNum][wordNum]) {
                 nounTest = !nounTest
                 extraClasses = "inverted"
@@ -134,25 +115,25 @@ function InputText(props) {
         })
     }
 
-    function addOnClicksToSpans() {
+    function addClickHandlersToSpans() {
         const classNames = ['noun', 'non-noun']
         for (const className of classNames) {
             const spans = document.getElementsByClassName(className)
             for (const span of spans) {
                 span.addEventListener('click', (event) => {
-                    const [lineNum, wordNum] = event.target.id.split('_').slice(1)
-                    invertNoun(parseInt(lineNum, 10), parseInt(wordNum, 10))
+                    const [line, word] = event.target.id.split('_').slice(1)
+                    invertNoun(parseInt(line, 10), parseInt(word, 10))
                     event.stopPropagation() // thought this might stop the 2nd call to invertNoun, but it doesn't
                 })
             }
         }
     }
 
-    useEffect(drawNounOutlines, [textLines, parser, nounInverter])
+    useEffect(drawNounOutlines, [textLines, parserName, nounInverters])
 
-    function handleParserChange (event) {
+    function handleParserChange(event) {
         const {value} = event.target
-        setParser(value)
+        setParserName(value)
     }
 
   return (
@@ -163,29 +144,17 @@ function InputText(props) {
                 <textarea value={textLines.join("\n")} id="text-input"/>
             </Grid>
             <Grid item xs={6}>
-                <h1> Choose your Natural Language Parser </h1>
+                <h1> Choose your Natural Language parserName </h1>
                 <div>
-                    <div id="parser-descriptions">
-                        <Tooltipped 
-                            title="Parts-of-Speech"
-                            body="Javascript port of Mark Watson's FastTag Part of Speech Tagger which was itself based on Eric Brill's trained rule set and English lexicon"
-                            link="https://github.com/dariusk/pos-js#readme"
-                        />
-                        {"          "}
-                        <Tooltipped 
-                            title="en-pos"
-                            body="A better English POS tagger written in JavaScript"
-                            link="https://github.com/finnlp/en-pos#readme"
-                        />
-                    </div>
+                    <ParserDescriptions />
                     <FormControl>
                         <FormLabel id="parsers-radio-buttons-group-label">Parsers</FormLabel>
                         <RadioGroup
                             row
                             aria-labelledby="parsers-radio-buttons-group-label"
-                            defaultValue={defaultParser}
-                            name="parser"
-                            value={parser}
+                            defaultValue={defaultParserName}
+                            name="parserName"
+                            value={parserName}
                             onChange={handleParserChange}
                         >
                             <FormControlLabel value="parts-of-speech" control={<Radio />} label="Parts-of-Speech" />
@@ -204,9 +173,5 @@ function InputText(props) {
     </section>
   )
 }
-
-// InputText.propTypes = {
-//     parser: PropTypes.oneOf(['parts-of-speech', 'en-pos']).isRequired,
-// };
 
 export default InputText;
