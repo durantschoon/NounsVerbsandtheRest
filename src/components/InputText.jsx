@@ -144,7 +144,7 @@ function InputText(props) {
                 <textarea value={textLines.join("\n")} id="text-input"/>
             </Grid>
             <Grid item xs={6}>
-                <h1> Choose your Natural Language parserName </h1>
+                <h1> Choose your Natural Language Parser </h1>
                 <div>
                     <ParserDescriptions />
                     <FormControl>
