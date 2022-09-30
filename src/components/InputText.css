@@ -6,9 +6,9 @@ textarea {
     border: 1px solid #000;
 }
 
-textarea, #text-output {
+textarea, #text-output, fieldset {
     min-width: 400px;
-    padding: 2px;
+    padding: 4px;
     width: 90%;
 }
 

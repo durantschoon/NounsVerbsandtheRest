@@ -28,14 +28,31 @@ const PRE = "word"
 function InputText(props) {
     const [textLines, setTextLines] = useState(defaultTextLines)
     const [parserName, setParserName] = useState(defaultParserName)
+
+    // store a noun inverter for each parser (which are the keys)
     const [nounInverters, setNounInverters] = useState({
-        [P.PARTS_OF_SPEECH]: [], 
+        [P.PARTS_OF_SPEECH]: [],
         [P.EN_POS]: [],
-    }) // values are jagged arrays of arrays indicating if a word at a given index (in a given line)
+    }) 
+    // nounInverter values are jagged arrays of arrays indicating if a word at a given index (in a given line)
     //    is an inversion from the noun-state by the parserName
     //    e.g. nounInverters[P.PARTS_OF_SPEECH][3][7] === true 
     //      means that the eighth word in the fourth line (for the P.PARTS_OF_SPEECH parser) has been inverted
     //    i.e. inverted means now should be considered not-a-noun if originally a noun or vice-versa
+
+    const [falsePositiveCount, setFalsePositiveCount] = useState({
+        [P.PARTS_OF_SPEECH]: 0,
+        [P.EN_POS]: 0,
+    })
+
+    const [falseNegativeCount, setFalseNegativeCount] = useState({
+        [P.PARTS_OF_SPEECH]: 0,
+        [P.EN_POS]: 0,
+    })
+
+    function updateValueForCurrentParser(setter, value) {
+        setter ( prevObj => ({...prevObj, [parserName]: value}) )
+    }
 
     function drawNounOutlines() {
         const nounInverter = nounInverters[parserName]
@@ -80,13 +97,11 @@ function InputText(props) {
             const recombined = R.unnest(R.zip(first, second)).join('')
             outlined.push(recombined)
         })
-        if (nounInverter.length === 0) updateCurentNounInverter(newNounInverter) // only set it once on initial load
+        if (nounInverter.length === 0) updateValueForCurrentParser(setNounInverters, newNounInverter) // only set it once on initial load
         document.getElementById("text-output").innerHTML = outlined.join('<br>')
+        updateValueForCurrentParser(setFalsePositiveCount, document.getElementsByClassName("non-noun inverted").length)
+        updateValueForCurrentParser(setFalseNegativeCount, document.getElementsByClassName("noun inverted").length)
         addClickHandlersToSpans()
-    }
-
-    function updateCurentNounInverter(newNounInverter) {
-        setNounInverters({...nounInverters, [parserName]: newNounInverter})
     }
 
     function invertNoun(line, word) {
@@ -168,6 +183,14 @@ function InputText(props) {
                     <li>Click on a word with the <span class="noun">Back</span> icon to change a word BACK TO a non-noun.</li>
                 </ul>
                 <div id="text-output"></div>
+                <fieldset>
+                    <legend><b><i>Statistics for {parserName}</i></b></legend>
+                    <div>
+                        <span><b>False Positives:</b> {falsePositiveCount[parserName]}  </span>
+                        <span><b>False Negatives:</b> {falseNegativeCount[parserName]}</span> 
+                    </div>
+                    <b>Total Incorrect:</b> {falsePositiveCount[parserName] + falseNegativeCount[parserName]}
+                </fieldset>
             </Grid>
         </Grid>
     </section>
