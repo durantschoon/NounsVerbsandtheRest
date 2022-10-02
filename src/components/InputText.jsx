@@ -180,9 +180,9 @@ function InputText(props) {
                 <h1> Correct what is and is not a noun </h1>
                 <ul>
                     <li>Click on a word with the <span class="non-noun">Plus</span> 
-                        <img id="non-noun-img"></img> cursor to change a word INTO a noun.</li>
+                        <img id="non-noun-cursor-img"></img> cursor to change a word INTO a noun.</li>
                     <li>Click on a word with the <span class="noun">Back</span> 
-                        <img id="noun-img"></img> cursor to change a word BACK TO a non-noun.</li>
+                        <img id="noun-cursor-img"></img> cursor to change a word BACK TO a non-noun.</li>
                 </ul>
                 <div id="text-output"></div>
                 <fieldset>

@@ -20,12 +20,12 @@ textarea, #text-output, fieldset {
     cursor: alias;
 }
 
-#noun-img {
+#noun-cursor-img {
     content: url("../images/cursor_back.png");
     width: 20px;
 }
 
-#non-noun-img {
+#non-noun-cursor-img {
     content: url("../images/cursor_plus.png");
     width: 20px;
 }
