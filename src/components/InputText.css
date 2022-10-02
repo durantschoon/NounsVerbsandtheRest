@@ -20,6 +20,16 @@ textarea, #text-output, fieldset {
     cursor: alias;
 }
 
+#noun-img {
+    content: url("../images/cursor_back.png");
+    width: 20px;
+}
+
+#non-noun-img {
+    content: url("../images/cursor_plus.png");
+    width: 20px;
+}
+
 .non-noun {
     cursor: cell;
 }
