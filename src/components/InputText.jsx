@@ -1,6 +1,7 @@
 // import PropTypes from 'prop-types';
 
 import { Grid } from '@mui/material';
+import useMediaQuery from '@mui/material/useMediaQuery';
 import Radio from '@mui/material/Radio';
 import RadioGroup from '@mui/material/RadioGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
@@ -13,6 +14,7 @@ import * as R from 'ramda'
 import "./InputText.css";
 
 import {PARSERS as P, tagWordsInLine, ParserDescriptions} from './ParserDescriptions'
+
 import sonnets from '../data/sonnets.js'
 
 const defaultParserName = P.PARTS_OF_SPEECH
@@ -28,6 +30,8 @@ const PRE = "word"
 function InputText(props) {
     const [textLines, setTextLines] = useState(defaultTextLines)
     const [parserName, setParserName] = useState(defaultParserName)
+
+    const extraLargeScreen = useMediaQuery(theme => theme.breakpoints.up('xl'));
 
     // store a noun inverter for each parser (which are the keys)
     const [nounInverters, setNounInverters] = useState({
@@ -153,7 +157,7 @@ function InputText(props) {
 
   return (
     <section>
-        <Grid container spacing={2}>
+        <Grid container spacing={2} direction={extraLargeScreen?"row":"column"}>
             <Grid item xs={6}>
                 <h1> For now, a poem... </h1>
                 <textarea value={textLines.join("\n")} id="text-input"/>
