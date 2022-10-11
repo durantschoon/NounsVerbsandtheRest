@@ -1,4 +1,6 @@
 html, body {
     font-family: 'Noto Sans', sans-serif;
-    margin: 4px;
+    margin: 4px;background: #e7dfbc;  /* fallback for old browsers */
+    background: -webkit-linear-gradient(to top, #fbfaf8, #e7dfbc);  /* Chrome 10-25, Safari 5.1-6 */
+    background: linear-gradient(to bottom, #fbfaf8, #e7dfbc); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
 }
