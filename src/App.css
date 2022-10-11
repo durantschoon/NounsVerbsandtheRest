@@ -1,6 +1,11 @@
+:root {
+    --color-primary: #807b67;
+    --color-secondary: #f8f7f6;
+}
+
 html, body {
     font-family: 'Noto Sans', sans-serif;
-    margin: 4px;background: #e7dfbc;  /* fallback for old browsers */
-    background: -webkit-linear-gradient(to top, #fbfaf8, #e7dfbc);  /* Chrome 10-25, Safari 5.1-6 */
-    background: linear-gradient(to bottom, #fbfaf8, #e7dfbc); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+    margin: 4px;background: var(--color-primary);  /* fallback for old browsers */
+    background: -webkit-linear-gradient(to top, var(--color-secondary), var(--color-primary));  /* Chrome 10-25, Safari 5.1-6 */
+    background: linear-gradient(to bottom, var(--color-secondary), var(--color-primary)); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
 }
