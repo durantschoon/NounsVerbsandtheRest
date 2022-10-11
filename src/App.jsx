@@ -15,15 +15,12 @@ export default function App() {
       <AppBar position="static">
         <Toolbar>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            Noun-ify!
+            Nouns, Verbs and the Rest
           </Typography>
         </Toolbar>
       </AppBar>
       <Box sx={{ flexGrow: 1 }}>
-          <Typography variant="subtitle2" component="div" sx={{ flexGrow: 1 }}>
-            <i>version: 2022_sep14_rebuild2_app</i>
-          </Typography>
-          <InputText />
+        <InputText />
       </Box>
     </Box>
   );
