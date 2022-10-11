@@ -12,6 +12,10 @@ textarea, #text-output, fieldset {
     width: 90%;
 }
 
+textarea, #text-output {
+    font-family: 'Xanh Mono', monospace;
+    font-size: 1.2rem;
+}
 
 .noun {
     border: 1px solid orange;
