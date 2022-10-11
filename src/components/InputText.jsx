@@ -189,8 +189,8 @@ function InputText(props) {
                         <img id="noun-cursor-img"></img> cursor to change a word BACK TO a non-noun.</li>
                 </ul>
                 <div id="text-output"></div>
-                <fieldset>
-                    <legend><b><i>Statistics for {parserName}</i></b></legend>
+                <fieldset id="stats-fieldset">
+                    <legend id="stats-legend"><b><i>Statistics for {parserName}</i></b></legend>
                     <div>
                         <span><b>False Positives:</b> {falsePositiveCount[parserName]}  </span>
                         <span><b>False Negatives:</b> {falseNegativeCount[parserName]}</span> 

@@ -6,15 +6,25 @@ textarea {
     border: 1px solid #000;
 }
 
-textarea, #text-output, fieldset {
+textarea, #text-output, #stats-fieldset, legend {
     min-width: 400px;
     padding: 4px;
     width: 90%;
+    background-color: floralwhite;
 }
 
 textarea, #text-output {
     font-family: 'Xanh Mono', monospace;
     font-size: 1.2rem;
+}
+
+#stats-fieldset {
+    margin-top: 0.5rem;
+}
+
+#stats-legend {
+    max-width: 5rem;
+    border: 1px solid lightgray;
 }
 
 .noun {
