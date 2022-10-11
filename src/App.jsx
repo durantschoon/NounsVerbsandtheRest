@@ -14,10 +14,10 @@ import InputText from './components/InputText'
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#e7dfbc',
+      main: '#807b67',
     },
     secondary: {
-      main: '#fbfaf8',
+      main: '#f8f7f6',
     },
   }
 });
@@ -28,7 +28,7 @@ export default function App() {
       <Box sx={{ flexGrow: 1 }}>
         <AppBar position="static">
           <Toolbar>
-            <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+            <Typography variant="h4" component="div" sx={{ flexGrow: 1 }}>
               Nouns, Verbs and the Rest
             </Typography>
           </Toolbar>
