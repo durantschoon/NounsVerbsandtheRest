@@ -21,8 +21,5 @@ Refactor so that `Parser` is an object. This should:
 1. `tagWordsInLine` currently switches by keys on an object, this could be a curried functions which consumes the parser first
 2. `parserInfo` could be the same
 # Stackblitz creation
-## github-jfa5q4
 
 Originally with react-vite-mui on StackBlitz (nothing saved there though now)
-
-[Edit on StackBlitz ⚡️](https://stackblitz.com/edit/github-jfa5q4)
