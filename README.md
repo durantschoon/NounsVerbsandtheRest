@@ -1,3 +1,6 @@
+<img width="1675" alt="NVR Screen Shot 2022-10-12" src="https://user-images.githubusercontent.com/12535192/195400830-ea987633-c365-4077-bfcf-2d0b46d11a8a.png">
+
+
 # Durant's Notes
 
 Had to run `npm i vite@latest` before I could run `npm run dev`
