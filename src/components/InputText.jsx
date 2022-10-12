@@ -13,7 +13,9 @@ import * as R from 'ramda'
 
 import "./InputText.css";
 
-import {PARSERS as P, tagWordsInLine, ParserDescriptions} from './ParserDescriptions'
+import {PARSERS as P,
+        tagWordsInLine,
+        ParserDescriptions} from './ParserDescriptions'
 
 import sonnets from '../data/sonnets.js'
 
@@ -38,11 +40,14 @@ function InputText(props) {
         [P.PARTS_OF_SPEECH]: [],
         [P.EN_POS]: [],
     }) 
-    // nounInverter values are jagged arrays of arrays indicating if a word at a given index (in a given line)
+    // nounInverter values are jagged arrays of arrays indicating if a word at a
+    //    given index (in a given line)
     //    is an inversion from the noun-state by the parserName
     //    e.g. nounInverters[P.PARTS_OF_SPEECH][3][7] === true 
-    //      means that the eighth word in the fourth line (for the P.PARTS_OF_SPEECH parser) has been inverted
-    //    i.e. inverted means now should be considered not-a-noun if originally a noun or vice-versa
+    //      means that the eighth word (7+1) in the fourth (3+1) line (for the
+    //      P.PARTS_OF_SPEECH parser) has been inverted
+    //    i.e. inverted means now should be considered not-a-noun if originally
+    //      a noun or vice-versa
 
     const [falsePositiveCount, setFalsePositiveCount] = useState({
         [P.PARTS_OF_SPEECH]: 0,
@@ -70,12 +75,14 @@ function InputText(props) {
             newNounInverter = R.clone(nounInverter)
         }
 
-        textLines.forEach( (line, lineNum) => {      
+        textLines.forEach( (line, lineNum) => {
             if (line === '') {
                 outlined.push('')
                 return
             }
-            const matchedSpacePunct = line.match(spacePunct).map( s => s.replace(/ /g, UNICODE_NBSP) )
+            const matchedSpacePunct = line.match(spacePunct).map(
+                s => s.replace(/ /g, UNICODE_NBSP)
+            )
 
             let taggedWords = tagWordsInLine[parserName](line.replaceAll(punct, ''));
             if (newNounInverter[lineNum].length === 0) {
@@ -90,7 +97,7 @@ function InputText(props) {
             }
 
             // zip results in the correct order (i.e. starting with a space or not)
-            let first, second                
+            let first, second
             if (line[0].match(/\s/)) {
                 first = matchedSpacePunct
                 second = addNounSpans(taggedWords, lineNum)
@@ -101,10 +108,19 @@ function InputText(props) {
             const recombined = R.unnest(R.zip(first, second)).join('')
             outlined.push(recombined)
         })
-        if (nounInverter.length === 0) updateValueForCurrentParser(setNounInverters, newNounInverter) // only set it once on initial load
+        if (nounInverter.length === 0) {
+            // only set this once on initial load
+            updateValueForCurrentParser(setNounInverters, newNounInverter)
+        }
         document.getElementById("text-output").innerHTML = outlined.join('<br>')
-        updateValueForCurrentParser(setFalsePositiveCount, document.getElementsByClassName("non-noun inverted").length)
-        updateValueForCurrentParser(setFalseNegativeCount, document.getElementsByClassName("noun inverted").length)
+        updateValueForCurrentParser(
+            setFalsePositiveCount,
+            document.getElementsByClassName("non-noun inverted").length
+        )
+        updateValueForCurrentParser(
+            setFalseNegativeCount,
+            document.getElementsByClassName("noun inverted").length
+        )
         addClickHandlersToSpans()
     }
 
@@ -121,7 +137,7 @@ function InputText(props) {
         const nounInverter = nounInverters[parserName]
         let mainClass
         let extraClasses
-        let wordNum = 0        
+        let wordNum = 0
         return tagged.map( ([word, tag]) => {
             extraClasses = ""
             let nounTest = (tag === 'NN' || tag === 'NNS')
@@ -142,7 +158,7 @@ function InputText(props) {
                 span.addEventListener('click', (event) => {
                     const [line, word] = event.target.id.split('_').slice(1)
                     invertNoun(parseInt(line, 10), parseInt(word, 10))
-                    event.stopPropagation() // thought this might stop the 2nd call to invertNoun, but it doesn't
+                    event.stopPropagation() // still fails to stop 2nd invertNoun call
                 })
             }
         }
