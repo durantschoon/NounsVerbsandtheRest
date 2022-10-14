@@ -5,14 +5,16 @@
 
 Had to run `npm i vite@latest` before I could run `npm run dev`
 
-Also had to run `npm i @mui/icons-material` to get the icons I needed.
+Also had to run `npm i @mui/icons-material` to get the icons I needed, etc.
 
 
 # ToDo
 
-Noun inversion should apply to a particular parser. 
+The purspose of this personal project is to mostly stay in practice by adding a new feature regularly (daily or almost-daily). Of course the more features that are added, the observant programmer will notice ways they'd like to refactor. 
 
-## Two major ways I could refactor
+## Two ways I could refactor
+
+I'm am still currently focused on adding small features, but to decide which of the two following refactorings to make, I plan to consider the [Extensibility / Expressibility Trade-off](https://www.youtube.com/watch?v=FWW87fvBKJg).
 
 ### Parsers as objects (OOP)
 Refactor so that `Parser` is an object. This should:
