@@ -3,10 +3,9 @@
 
 # Durant's Notes
 
-Had to run `npm i vite@latest` before I could run `npm run dev`
+This personal project started out as a vite-mui project on [stackblitz](https://stackblitz.com/). If you haven't seen vite or stackblitz, they're pretty cool (at least in Fall 2022).
 
-Also had to run `npm i @mui/icons-material` to get the icons I needed, etc.
-
+If you want to see this repo run, clone it and then run `npm install` and `npm run dev`
 
 # ToDo
 
@@ -25,6 +24,3 @@ Refactor so that `Parser` is an object. This should:
 ### Using curried functions instead (functional approach)
 1. `tagWordsInLine` currently switches by keys on an object, this could be a curried functions which consumes the parser first
 2. `parserInfo` could be the same
-# Stackblitz creation
-
-Originally with react-vite-mui on StackBlitz (nothing saved there though now)
