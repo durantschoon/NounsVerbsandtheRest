@@ -14,7 +14,7 @@ The purspose of this personal project is to mostly stay in practice by adding a 
 
 ## Two ways I could refactor
 
-I'm am still currently focused on adding small features, but to decide which of the two following refactorings to make, I plan to consider the [Extensibility / Expressibility Trade-off](https://www.youtube.com/watch?v=FWW87fvBKJg).
+I'm am still currently focused on adding small features, but to decide which of the two following refactorings to make, I plan to consider the [Extensibility / Expressibility Trade-off](https://www.youtube.com/watch?v=FWW87fvBKJg) (the sample code in the video is Haskell, but it is fully explained to the level of the non-Haskell programmer). 
 
 ### Parsers as objects (OOP)
 Refactor so that `Parser` is an object. This should:
