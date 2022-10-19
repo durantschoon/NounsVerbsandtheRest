@@ -7,7 +7,7 @@ This personal project started out as a vite-mui project on [stackblitz](https://
 
 If you want to see this repo run, clone it and then run `npm install` and `npm run dev`
 
-Or you can use https://www.gitpod.io/ which I only just disovered recently and it's also really cool.
+Or you can use [gitpod](https://www.gitpod.io/) which I only just disovered recently and it's also really cool.
 
 # ToDo
 
