@@ -7,6 +7,8 @@ This personal project started out as a vite-mui project on [stackblitz](https://
 
 If you want to see this repo run, clone it and then run `npm install` and `npm run dev`
 
+Or you can use https://www.gitpod.io/ which I only just disovered recently and it's also really cool.
+
 # ToDo
 
 The purspose of this personal project is to mostly stay in practice by adding a new feature regularly (daily or almost-daily). Of course the more features that are added, the observant programmer will notice ways they'd like to refactor. 
