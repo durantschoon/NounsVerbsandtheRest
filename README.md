@@ -26,3 +26,13 @@ Refactor so that `Parser` is an object. This should:
 ### Using curried functions instead (functional approach)
 1. `tagWordsInLine` currently switches by keys on an object, this could be a curried functions which consumes the parser first
 2. `parserInfo` could be the same
+
+# How this was repo was created and how to create a new one
+
+Brilliantly easy:
+
+1. Go here https://github.com/mui/material-ui/tree/master/examples/vitejs
+2. Click the Open in Stackblitz button
+3. Click the Fork button at the top
+
+
