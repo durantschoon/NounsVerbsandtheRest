@@ -3,7 +3,7 @@
 
 # Durant's Notes
 
-This personal project started out as a vite-mui project on [stackblitz](https://stackblitz.com/). If you haven't seen vite or stackblitz, they're pretty cool (at least in Fall 2022). One thing about vite that I just found out is that Jest support is not great. There is a vite-jest npm package (which is in thie repo, but I need to force install from npm). I will probably explore vitest with React Testing Library next.
+This personal project started out as a vite-mui project on [stackblitz](https://stackblitz.com/). If you haven't seen vite or stackblitz, they're pretty cool (at least in Fall 2022). One thing about vite that I just found out is that Jest (testing) support is not great. There is a vite-jest npm package (which is in thie repo, but I need to force install from npm). I will probably explore vitest with React Testing Library next.
 
 If you want to see this repo run, clone it and then run `npm install` and `npm run dev`
 
