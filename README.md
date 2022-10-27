@@ -23,7 +23,10 @@ json-server --watch src/tests/db.json
 
 The purspose of this personal project is to mostly stay in practice by adding a new feature regularly (daily or almost-daily). Of course the more features that are added, the observant programmer will notice ways they'd like to refactor. 
 
-## Two ways I could refactor
+## Small refactor coming
+
+I do plan to split up the InputText.jsx file soon.
+## Larger refactor coming: Two choices to consider
 
 I'm am still currently focused on adding small features, but to decide which of the two following refactorings to make, I plan to consider the [Extensibility / Expressibility Trade-off](https://www.youtube.com/watch?v=FWW87fvBKJg) (the sample code in the video uses Haskell to explain the functional example and C# to explain the Object Oriented example, but everything is fully explained to the level of the non-Haskell, non-C# programmer ... huge thanks to Nils for recommending the video to me, but he'll probably never see this.). 
 
