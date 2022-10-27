@@ -12,15 +12,26 @@ import './App.css'
 import InputText from './components/InputText'
 
 const theme = createTheme({
-  palette: {
-    primary: {
-      main: '#807b67',
-    },
-    secondary: {
-      main: '#f8f7f6',
-    },
-  }
-});
+    palette: {
+        primary: {
+            main: '#807b67',
+        },
+        secondary: {
+            main: '#f8f7f6',
+        },
+    }, 
+    components: {
+        MuiFormControl: {
+            styleOverrides: {
+                // Name of the slot
+                root: {
+                    // Some CSS
+                    margin: '4px'
+                }
+            }
+        }
+      }
+    });
 
 export default function App() {
   return (

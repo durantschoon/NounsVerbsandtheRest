@@ -7,6 +7,10 @@ import RadioGroup from '@mui/material/RadioGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import FormControl from '@mui/material/FormControl';
 import FormLabel from '@mui/material/FormLabel';
+import InputLabel from '@mui/material/InputLabel';
+import Select from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
+// import { makeStyles } from "@material-ui/core/styles";
 
 import {useState, useEffect} from 'react'
 import * as R from 'ramda'
@@ -21,6 +25,10 @@ import sonnets from '../data/sonnets.js'
 
 const defaultParserName = P.PARTS_OF_SPEECH
 const defaultTextLines = sonnets[60].split('\n')
+const defaultAuthor = 'Shakespeare'
+const defaultAuthorList = [defaultAuthor]
+const defaultTitle = 'Sonnet 60'
+const defaultTitleList = [defaultTitle]
 
 const punct = /([.,\/#!$%\^&\*;:{}=\-_`~()]+)/gm
 const spacePunct = /([\s.,\/#!$%\^&\*;:{}=\-_`~()]+)/gm
@@ -29,9 +37,17 @@ const UNICODE_NBSP = "\u00A0"
 
 const PRE = "word"
 
+function capitalizeFirstLetter(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
 function InputText(props) {
     const [textLines, setTextLines] = useState(defaultTextLines)
     const [parserName, setParserName] = useState(defaultParserName)
+    const [author, setAuthor] = useState(defaultAuthor)
+    const [authorList, setAuthorList] = useState(defaultAuthorList)
+    const [title, setTitle] = useState(defaultTitle)
+    const [titleList, setTitleList] = useState(defaultTitleList)
 
     const extraLargeScreen = useMediaQuery(theme => theme.breakpoints.up('xl'));
 
@@ -171,11 +187,38 @@ function InputText(props) {
         setParserName(value)
     }
 
+    function selector(selName, value, setter, valList) {
+        return (
+            <FormControl dense="true">
+              <InputLabel id={`${selName}-select-label`}>{capitalizeFirstLetter(selName)}</InputLabel>
+              <Select
+                labelId={`${selName}-select-label`}
+                id={`${selName}-select`}
+                value={value}
+                label={capitalizeFirstLetter(selName)}
+                onChange={ (event) => setter(event.target.value) }
+              >
+                {valList.map( s => (<MenuItem value={s}>{s}</MenuItem>) )}
+              </Select>
+            </FormControl>
+        )
+    }
+
+    function authorSelector() {
+        return selector('author', author, setAuthor, authorList)
+    }
+
+    function titleSelector() {
+        return selector('title', title, setTitle, titleList)
+    }
+
   return (
     <section>
         <Grid container spacing={2} direction={extraLargeScreen?"row":"column"}>
             <Grid item xs={6}>
                 <h1> For now, a poem... </h1>
+              { authorSelector() }
+              { titleSelector() }
                 <textarea value={textLines.join("\n")} id="text-input"/>
             </Grid>
             <Grid item xs={6}>
@@ -199,8 +242,8 @@ function InputText(props) {
                 </div>
                 <h1> Correct what is and is not a noun </h1>
                 <ul>
-                    <li>Click on a word with the <span class="non-noun">Plus</span> <img id="non-noun-cursor-img"></img> cursor to change a word INTO a noun.</li>
-                    <li>Click on a word with the <span class="noun">Back</span> <img id="noun-cursor-img"></img> cursor to change a word BACK TO a non-noun.</li>
+                    <li>Click on a word with the <span className="non-noun">Plus</span> <img id="non-noun-cursor-img"></img> cursor to change a word INTO a noun.</li>
+                    <li>Click on a word with the <span className="noun">Back</span> <img id="noun-cursor-img"></img> cursor to change a word BACK TO a non-noun.</li>
                 </ul>
                 <div id="text-output"></div>
                 <fieldset id="stats-fieldset">
@@ -215,6 +258,6 @@ function InputText(props) {
         </Grid>
     </section>
   )
-}
+    }
 
 export default InputText;
