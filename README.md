@@ -9,6 +9,16 @@ If you want to see this repo run, clone it and then run `npm install` and `npm r
 
 Or you can use [gitpod](https://www.gitpod.io/) which I only just disovered recently and it's also really cool.
 
+# Test Poem Server
+
+*just starting this for cases when https://poetrydb is down*
+
+Can run the server with this command in the repo's root directory (port used will be printed to terminal):
+
+```sh
+json-server --watch src/tests/db.json
+```
+
 # ToDo
 
 The purspose of this personal project is to mostly stay in practice by adding a new feature regularly (daily or almost-daily). Of course the more features that are added, the observant programmer will notice ways they'd like to refactor. 
