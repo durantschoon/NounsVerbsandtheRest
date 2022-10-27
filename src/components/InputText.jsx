@@ -75,6 +75,7 @@ function InputText(props) {
         [P.EN_POS]: 0,
     })
 
+    // Utility for setting statistics
     function updateValueForCurrentParser(setter, value) {
         setter ( prevObj => ({...prevObj, [parserName]: value}) )
     }
