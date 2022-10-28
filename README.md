@@ -21,7 +21,12 @@ json-server --watch src/tests/db.json
 
 # ToDo
 
-The purspose of this personal project is to mostly stay in practice by adding a new feature regularly (daily or almost-daily). Of course the more features that are added, the observant programmer will notice ways they'd like to refactor. 
+The purspose of this personal project is to mostly stay in practice by adding a new feature regularly (daily or almost-daily). Of course the more features that are added, the observant programmer will notice ways they'd like to refactor.
+
+## Restore the noun inverters
+
+Now that poetry selection works, restore the noun inverters when returning.
+Also consider saving state in local storage and loading that too.
 
 ## Small refactor coming
 
