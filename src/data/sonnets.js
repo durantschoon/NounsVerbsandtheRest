@@ -1,5 +1,6 @@
 const sonnets = {
-    60: `Sonnet 60: Like As The Waves Make Towards The Pebbled Shore
+    "William Shakespeare": {
+        'Sonnet 60': `Sonnet 60: Like As The Waves Make Towards The Pebbled Shore
 
     Like as the waves make towards the pebbled shore,
     So do our minutes hasten to their end;
@@ -14,7 +15,72 @@ const sonnets = {
     Feeds on the rarities of nature’s truth,
     And nothing stands but for his scythe to mow:
       And yet to times in hope, my verse shall stand
-      Praising thy worth, despite his cruel hand.`
+      Praising thy worth, despite his cruel hand.`.split("\n"),
+    },
+    "Robert Frost": {
+        "Acquainted With The Night": `Acquainted With The Night
+
+    I have been one acquainted with the night.
+    I have walked out in rain—and back in rain.
+    I have outwalked the furthest city light.
+
+    I have looked down the saddest city lane.
+    I have passed by the watchman on his beat
+    And dropped my eyes, unwilling to explain.
+
+    I have stood still and stopped the sound of feet
+    When far away an interrupted cry
+    Came over houses from another street,
+
+    But not to call me back or say good-bye;
+    And further still at an unearthly height,
+    One luminary clock against the sky
+
+    Proclaimed the time was neither wrong nor right.
+    I have been one acquainted with the night.`.split("\n")
+    }
 }
+
+// the code below will automatically set variables for defaults
+
+let author
+let authorList
+let title
+let titleList
+let textLines
+let titlesByAuthor = {}
+for (const [sAuthor, sonnetsByAuthor] of Object.entries(sonnets)) {
+    if (author === undefined) {
+        author = sAuthor
+    }
+    if (authorList === undefined) {
+        authorList = [sAuthor]
+    } else {
+        authorList.push(sAuthor)
+    }
+    for (const [sTitle, lines] of Object.entries(sonnetsByAuthor)) {
+        if (title === undefined) {
+            title = sTitle
+        }
+        if (titlesByAuthor[sAuthor] === undefined) {
+            titlesByAuthor[sAuthor] = [sTitle] 
+        } else {
+            titlesByAuthor[sAuthor].push(sTitle)
+        }
+        if (textLines === undefined) {
+            textLines = lines
+        }
+    }
+    if (titleList === undefined) {
+        titleList = titlesByAuthor[author]
+    }
+}
+
+export const defaultAuthor = author
+export const defaultAuthorList = authorList
+export const defaultTitle = title
+export const defaultTitleList = titleList
+export const defaultTitlesByAuthor = titlesByAuthor
+export const defaultTextLines = textLines
 
 export default sonnets

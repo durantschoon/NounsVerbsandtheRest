@@ -10,7 +10,6 @@ import FormLabel from '@mui/material/FormLabel';
 import InputLabel from '@mui/material/InputLabel';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
-// import { makeStyles } from "@material-ui/core/styles";
 
 import {useState, useEffect} from 'react'
 import * as R from 'ramda'
@@ -22,18 +21,16 @@ import {PARSERS as P,
         ParserDescriptions} from './ParserDescriptions'
 
 import sonnets from '../data/sonnets.js'
+import { defaultAuthor, defaultAuthorList,
+         defaultTitle, defaultTitleList,
+         defaultTextLines,
+         defaultTitlesByAuthor as titlesByAuthor } from '../data/sonnets.js'
 
-const defaultParserName = P.PARTS_OF_SPEECH
-const defaultTextLines = sonnets[60].split('\n')
-const defaultAuthor = 'Shakespeare'
-const defaultAuthorList = [defaultAuthor]
-const defaultTitle = 'Sonnet 60'
-const defaultTitleList = [defaultTitle]
+let fetchedPoems = sonnets
 
 const poetryURLs = ['https://poetrydb.org', 'http://165.227.95.56:3000']
 
-let fetchedPoems
-let titlesByAuthor
+const defaultParserName = P.PARTS_OF_SPEECH
 
 const punct = /([.,\/#!$%\^&\*;:{}=\-_`~()]+)/gm
 const spacePunct = /([\s.,\/#!$%\^&\*;:{}=\-_`~()]+)/gm
@@ -276,6 +273,9 @@ function InputText(props) {
             setTextLines(fetchedPoems[author][title])
         }
     }, [title] )
+
+    // initialize data with defaults
+    fetchedPoems = sonnets
 
   return (
     <section>
