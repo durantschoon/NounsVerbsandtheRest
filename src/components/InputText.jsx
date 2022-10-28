@@ -10,8 +10,10 @@ import FormLabel from '@mui/material/FormLabel';
 import InputLabel from '@mui/material/InputLabel';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
+import Snackbar from '@mui/material/Snackbar';
+import MuiAlert from '@mui/material/Alert';
 
-import {useState, useEffect} from 'react'
+import {forwardRef, useState, useEffect} from 'react'
 import * as R from 'ramda'
 
 import "./InputText.css";
@@ -39,6 +41,10 @@ const UNICODE_NBSP = "\u00A0"
 
 const PRE = "word"
 
+const Alert = forwardRef(function Alert(props, ref) {
+    return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
+});
+
 function capitalizeFirstLetter(string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
 }
@@ -50,6 +56,10 @@ function InputText(props) {
     const [authorList, setAuthorList] = useState(defaultAuthorList)
     const [title, setTitle] = useState(defaultTitle)
     const [titleList, setTitleList] = useState(defaultTitleList)
+
+    const [snackOpen, setSnackOpen] = useState(false)
+    const [snackSeverity, setSnackSeverity] = useState("info")
+    const [snackMessage, setSnackMessage] = useState()
 
     const extraLargeScreen = useMediaQuery(theme => theme.breakpoints.up('xl'));
 
@@ -216,6 +226,20 @@ function InputText(props) {
         return selector('title', title, setTitle, titleList)
     }
 
+    function toast(message, severity) {
+        setSnackMessage(message)
+        setSnackSeverity(severity)
+        setSnackOpen(true)
+    }
+
+    const handleSnackClose = (event, reason) => {
+        if (reason === 'clickaway') {
+            return;
+        }
+
+        setSnackOpen(false);
+    };
+
     useEffect( () => {
         async function fetchAuthorsAndTitles(url) {
             const authorURL = url + '/author'
@@ -253,7 +277,7 @@ function InputText(props) {
         }
         for (const url of poetryURLs) {
             fetchAuthorsAndTitles(url)
-                // .catch(console.error); // uncomment when poetrydb.org is back up
+                .catch( (error) => toast(`${error.message}: ${url}`, "warning")); 
         }
     }, [])
 
@@ -321,6 +345,11 @@ function InputText(props) {
                 </fieldset>
             </Grid>
         </Grid>
+      <Snackbar open={snackOpen} autoHideDuration={6000} onClose={handleSnackClose}>
+        <Alert onClose={handleSnackClose} severity={snackSeverity} sx={{ width: '100%' }}>
+          {snackMessage}
+        </Alert>
+      </Snackbar>
     </section>
   )
     }
