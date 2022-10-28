@@ -20,11 +20,11 @@ import {PARSERS as P,
         tagWordsInLine,
         ParserDescriptions} from './ParserDescriptions'
 
-import sonnets from '../data/sonnets.js'
-import { defaultAuthor, defaultAuthorList,
-         defaultTitle, defaultTitleList,
-         defaultTextLines,
-         defaultTitlesByAuthor as titlesByAuthor } from '../data/sonnets.js'
+import sonnets, { 
+    defaultAuthor, defaultAuthorList,
+    defaultTitle, defaultTitleList,
+    defaultTextLines,
+    defaultTitlesByAuthor as titlesByAuthor } from '../data/sonnets.js'
 
 let fetchedPoems = sonnets
 
