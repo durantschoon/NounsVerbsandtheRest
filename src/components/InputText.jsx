@@ -345,7 +345,7 @@ function InputText(props) {
                 </fieldset>
             </Grid>
         </Grid>
-      <Snackbar open={snackOpen} autoHideDuration={6000} onClose={handleSnackClose}>
+      <Snackbar open={snackOpen} autoHideDuration={6000} onClose={handleSnackClose} anchorOrigin={{ vertical: 'top', horizontal: 'center' }}>
         <Alert onClose={handleSnackClose} severity={snackSeverity} sx={{ width: '100%' }}>
           {snackMessage}
         </Alert>
