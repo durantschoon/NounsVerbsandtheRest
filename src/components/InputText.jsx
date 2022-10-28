@@ -30,6 +30,11 @@ const defaultAuthorList = [defaultAuthor]
 const defaultTitle = 'Sonnet 60'
 const defaultTitleList = [defaultTitle]
 
+const poetryURLs = ['https://poetrydb.org', 'http://165.227.95.56:3000']
+
+let fetchedPoems
+let titlesByAuthor
+
 const punct = /([.,\/#!$%\^&\*;:{}=\-_`~()]+)/gm
 const spacePunct = /([\s.,\/#!$%\^&\*;:{}=\-_`~()]+)/gm
 // const notSpacePunct = /([^\s.,\/#!$%\^&\*;:{}=\-_`~()]+)/gm
@@ -188,6 +193,7 @@ function InputText(props) {
         setParserName(value)
     }
 
+    // generic selector used for authors and titles
     function selector(selName, value, setter, valList) {
         return (
             <FormControl dense="true">
@@ -213,11 +219,69 @@ function InputText(props) {
         return selector('title', title, setTitle, titleList)
     }
 
+    useEffect( () => {
+        async function fetchAuthorsAndTitles(url) {
+            const authorURL = url + '/author'
+            let response = await fetch(authorURL)
+            const authorJSON = await response.json()
+            const authors = authorJSON.authors
+
+            // fetch all the new poems before triggering an author / title change
+            for (const author of authors) {
+                const poemsByAuthorURL = `${url}/author/${encodeURIComponent(author.trim())}`
+                response = await fetch(poemsByAuthorURL)
+                let fetchedPoemsInitial = await response.json()
+                titlesByAuthor = titlesByAuthor ? titlesByAuthor : {}
+                titlesByAuthor[author] = []
+                fetchedPoems = fetchedPoems ? fetchedPoems : {}
+                fetchedPoems[author] = {}
+                for (let poem of fetchedPoemsInitial) {
+                    titlesByAuthor[author].push(poem.title)
+                    fetchedPoems[author][poem.title] = poem.lines
+                }
+            }
+
+            if (authors.length === 0) return
+
+            // Choose the 2nd poet just because we want it to be Emily Dickinson in our common case
+            // or 1st (0th) if we end up with a one poet list
+            const authorIndex = Math.min(1, authors.length-1) 
+
+            // Set titles first because it is reverse order of triggering updates to selectors
+            const titles = titlesByAuthor[authors[authorIndex]]
+            setTitleList(titles)
+
+            setAuthorList(authors)
+            setAuthor(authors[authorIndex])
+        }
+        for (const url of poetryURLs) {
+            fetchAuthorsAndTitles(url)
+                // .catch(console.error); // uncomment when poetrydb.org is back up
+        }
+    }, [])
+
+    useEffect( () => {
+        if (titlesByAuthor !== undefined) {
+            const titles = titlesByAuthor[author]
+            setTitleList(titles)
+            setTitle(titles[0])
+        }
+    }, [author] )
+
+    useEffect( () => {
+        // When the title changes, the entire poem changes
+        if (fetchedPoems !== undefined) {
+            // reset the noun inverter so this it will be reconstructed for the current parser
+            updateValueForCurrentParser(setNounInverters, []) 
+            setTextLines(fetchedPoems[author][title])
+        }
+    }, [title] )
+
   return (
     <section>
         <Grid container spacing={2} direction={extraLargeScreen?"row":"column"}>
             <Grid item xs={6}>
-                <h1> For now, a poem... </h1>
+                <h1> Select a poem </h1>
               { authorSelector() }
               { titleSelector() }
                 <textarea value={textLines.join("\n")} id="text-input"/>
