@@ -9,14 +9,13 @@ import FormControl from '@mui/material/FormControl';
 import FormLabel from '@mui/material/FormLabel';
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
-import MuiAlert from '@mui/material/Alert';
 import Radio from '@mui/material/Radio';
 import RadioGroup from '@mui/material/RadioGroup';
 import Select from '@mui/material/Select';
-import Snackbar from '@mui/material/Snackbar';
 import useMediaQuery from '@mui/material/useMediaQuery';
 
 import AuthorProgress from './AuthorProgress'
+import SnackbarAlerts from './SnackbarAlerts'
 
 import "./InputText.css";
 
@@ -38,21 +37,16 @@ let fetchedPoems = sonnets
 let titlesByAuthor = deepClone(defaultTitlesByAuthor)
 
 // debug
-const poetryURLs = ['https://poetrydb.org', 'http://165.227.95.56:3000']
-// const poetryURLs = ['http://165.227.95.56:3000']
+// const poetryURLs = ['https://poetrydb.org', 'http://165.227.95.56:3000']
+const poetryURLs = ['http://this-will-fail.com', 'http://165.227.95.56:3000']
 
 const defaultParserName = P.PARTS_OF_SPEECH
 
 const punct = /([.,\/#!$%\^&\*;:{}=\-_`~()]+)/gm
 const spacePunct = /([\s.,\/#!$%\^&\*;:{}=\-_`~()]+)/gm
-// const notSpacePunct = /([^\s.,\/#!$%\^&\*;:{}=\-_`~()]+)/gm
 const UNICODE_NBSP = "\u00A0"
 
-const PRE = "word"
-
-const Alert = forwardRef(function Alert(props, ref) {
-    return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
-});
+const PRE = "word" // prefix for identifying word spans by computed id
 
 function capitalizeFirstLetter(string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
@@ -252,13 +246,6 @@ function InputText(props) {
         setSnackOpen(true)
     }
 
-    const handleSnackClose = (event, reason) => {
-        if (reason === 'clickaway') {
-            return;
-        }
-        setSnackOpen(false);
-    };
-
     useEffect( () => {
         async function fetchAuthorsAndTitles(url) {
             const authorURL = url + '/author'
@@ -382,11 +369,7 @@ function InputText(props) {
                 </fieldset>
             </Grid>
         </Grid>
-      <Snackbar open={snackOpen} autoHideDuration={6000} onClose={handleSnackClose} anchorOrigin={{ vertical: 'top', horizontal: 'center' }}>
-        <Alert onClose={handleSnackClose} severity={snackSeverity} sx={{ width: '100%' }}>
-          {snackMessage}
-        </Alert>
-      </Snackbar>
+      <SnackbarAlerts {...{snackOpen, setSnackOpen, snackSeverity, snackMessage}}/>
     </section>
   )
     }
