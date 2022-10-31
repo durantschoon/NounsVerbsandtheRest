@@ -69,9 +69,7 @@ function InputText(props) {
     const [title, setTitle] = useState(defaultTitle)
     const [titleList, setTitleList] = useState(defaultTitleList)
 
-    const [snackOpen, setSnackOpen] = useState(false)
-    const [snackSeverity, setSnackSeverity] = useState("info")
-    const [snackMessage, setSnackMessage] = useState("")
+    const [toast, setToast] = useState({open: false, severity: "info", message: ""})
 
     const [loadingProgress, setLoadingProgress] = useState({author: "", percentage: 0})
 
@@ -104,6 +102,10 @@ function InputText(props) {
     // Utility for setting statistics
     function updateValueForCurrentParser(setter, value) {
         setter ( prevObj => ({...prevObj, [parserName]: value}) )
+    }
+
+    function setSnackOpen(openOrClosed) {
+        setToast( prevToast => ({...prevToast, open: openOrClosed}) )
     }
 
     function drawNounOutlines() {
@@ -240,10 +242,8 @@ function InputText(props) {
         return selector('title', title, setTitle, titleList)
     }
 
-    function toast(message, severity) {
-        setSnackMessage(message)
-        setSnackSeverity(severity)
-        setSnackOpen(true)
+    function toastAlert(message, severity) {
+        setToast({message, severity, open: true})
     }
 
     useEffect( () => {
@@ -296,13 +296,14 @@ function InputText(props) {
             setAuthor(authors[authorIndex])
             return [authors, titles]
         }
+        let fetchedPromises = []
         for (let url of poetryURLs) {
-            let fetched = fetchAuthorsAndTitles(url)
-                .catch( (error) => toast(`${error.message}: ${url}`, "warning")); 
-            if (fetched) {
-                break
-            }
+            fetchedPromises.push(
+                fetchAuthorsAndTitles(url)
+                    .catch( (error) => toastAlert(`${error.message}: ${url}`, "warning"))
+            )
         }
+        Promise.all(fetchedPromises)
     }, [])
 
     useEffect( () => {
@@ -369,7 +370,7 @@ function InputText(props) {
                 </fieldset>
             </Grid>
         </Grid>
-      <SnackbarAlerts {...{snackOpen, setSnackOpen, snackSeverity, snackMessage}}/>
+      <SnackbarAlerts {...{...toast, setSnackOpen}}/>
     </section>
   )
     }

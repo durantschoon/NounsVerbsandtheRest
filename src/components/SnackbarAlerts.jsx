@@ -7,7 +7,7 @@ const Alert = forwardRef(function Alert(props, ref) {
     return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
 });
 
-function SnackbarAlerts({snackOpen, setSnackOpen, snackSeverity, snackMessage}) {
+function SnackbarAlerts({open, setSnackOpen, severity, message}) {
 
     const handleSnackClose = (event, reason) => {
         if (reason === 'clickaway') {
@@ -17,9 +17,9 @@ function SnackbarAlerts({snackOpen, setSnackOpen, snackSeverity, snackMessage}) 
     };
 
     return (
-        <Snackbar open={snackOpen} autoHideDuration={6000} onClose={handleSnackClose} anchorOrigin={{ vertical: 'top', horizontal: 'center' }}>
-          <Alert onClose={handleSnackClose} severity={snackSeverity} sx={{ width: '100%' }}>
-            {snackMessage}
+        <Snackbar open={open} autoHideDuration={6000} onClose={handleSnackClose} anchorOrigin={{ vertical: 'top', horizontal: 'center' }}>
+          <Alert onClose={handleSnackClose} severity={severity} sx={{ width: '100%' }}>
+            {message}
           </Alert>
         </Snackbar>
     )
