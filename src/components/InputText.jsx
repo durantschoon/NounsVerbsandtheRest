@@ -1,20 +1,22 @@
 // import PropTypes from 'prop-types';
 
+import {forwardRef, useState, useEffect} from 'react'
+import * as R from 'ramda'
+
 import { Grid } from '@mui/material';
-import useMediaQuery from '@mui/material/useMediaQuery';
-import Radio from '@mui/material/Radio';
-import RadioGroup from '@mui/material/RadioGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import FormControl from '@mui/material/FormControl';
 import FormLabel from '@mui/material/FormLabel';
 import InputLabel from '@mui/material/InputLabel';
-import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
-import Snackbar from '@mui/material/Snackbar';
 import MuiAlert from '@mui/material/Alert';
+import Radio from '@mui/material/Radio';
+import RadioGroup from '@mui/material/RadioGroup';
+import Select from '@mui/material/Select';
+import Snackbar from '@mui/material/Snackbar';
+import useMediaQuery from '@mui/material/useMediaQuery';
 
-import {forwardRef, useState, useEffect} from 'react'
-import * as R from 'ramda'
+import AuthorProgress from './AuthorProgress'
 
 import "./InputText.css";
 
@@ -26,11 +28,18 @@ import sonnets, {
     defaultAuthor, defaultAuthorList,
     defaultTitle, defaultTitleList,
     defaultTextLines,
-    defaultTitlesByAuthor as titlesByAuthor } from '../data/sonnets.js'
+    defaultTitlesByAuthor } from '../data/sonnets.js'
+
+function deepClone(obj) {
+    return JSON.parse(JSON.stringify(obj))
+}
 
 let fetchedPoems = sonnets
+let titlesByAuthor = deepClone(defaultTitlesByAuthor)
 
+// debug
 const poetryURLs = ['https://poetrydb.org', 'http://165.227.95.56:3000']
+// const poetryURLs = ['http://165.227.95.56:3000']
 
 const defaultParserName = P.PARTS_OF_SPEECH
 
@@ -50,7 +59,16 @@ function capitalizeFirstLetter(string) {
 }
 
 function InputText(props) {
-    const [textLines, setTextLines] = useState(defaultTextLines)
+
+    // my suspicion is that when I added a sufficiently large number of
+    // state hooks, it was no long reliable that textLines is set to
+    // defaultTextLines (implying useState is actually async)
+    let [textLines, setTextLines] = useState(defaultTextLines)
+    // console.log("1", {defaultTextLines})
+    // console.log("1", {textLines})
+    textLines = textLines || defaultTextLines
+    // console.log("2", {defaultTextLines})
+    // console.log("2", {textLines})
     const [parserName, setParserName] = useState(defaultParserName)
     const [author, setAuthor] = useState(defaultAuthor)
     const [authorList, setAuthorList] = useState(defaultAuthorList)
@@ -59,7 +77,9 @@ function InputText(props) {
 
     const [snackOpen, setSnackOpen] = useState(false)
     const [snackSeverity, setSnackSeverity] = useState("info")
-    const [snackMessage, setSnackMessage] = useState()
+    const [snackMessage, setSnackMessage] = useState("")
+
+    const [loadingProgress, setLoadingProgress] = useState({author: "", percentage: 0})
 
     const extraLargeScreen = useMediaQuery(theme => theme.breakpoints.up('xl'));
 
@@ -236,7 +256,6 @@ function InputText(props) {
         if (reason === 'clickaway') {
             return;
         }
-
         setSnackOpen(false);
     };
 
@@ -246,12 +265,28 @@ function InputText(props) {
             let response = await fetch(authorURL)
             const authorJSON = await response.json()
             const authors = authorJSON.authors
+            const numAuthors = authors.length
+            let countAuthors = 0
+
+            // console.log({authorURL})
+            // console.log({authors})
+
+            if (authors.length === 0) {
+                throw `No authors found at ${authorURL}`
+            }
 
             // fetch all the new poems before triggering an author / title change
-            for (const author of authors) {
-                const poemsByAuthorURL = `${url}/author/${encodeURIComponent(author.trim())}`
+            for (let author of authors) {
+                let poemsByAuthorURL = `${url}/author/${encodeURIComponent(author.trim())}`
+                // console.log("author loop", {poemsByAuthorURL})
+                setLoadingProgress({author, percentage: 100 * (++countAuthors / numAuthors)})
+                // console.log("author loop A", 100 * (countAuthors / numAuthors), "%")
+
                 response = await fetch(poemsByAuthorURL)
                 let fetchedPoemsInitial = await response.json()
+
+                // console.log("author loop", {fetchedPoemsInitial})
+
                 titlesByAuthor = titlesByAuthor ? titlesByAuthor : {}
                 titlesByAuthor[author] = []
                 fetchedPoems = fetchedPoems ? fetchedPoems : {}
@@ -261,8 +296,6 @@ function InputText(props) {
                     fetchedPoems[author][poem.title] = poem.lines
                 }
             }
-
-            if (authors.length === 0) return
 
             // Choose the 2nd poet just because we want it to be Emily Dickinson in our common case
             // or 1st (0th) if we end up with a one poet list
@@ -274,10 +307,14 @@ function InputText(props) {
 
             setAuthorList(authors)
             setAuthor(authors[authorIndex])
+            return [authors, titles]
         }
-        for (const url of poetryURLs) {
-            fetchAuthorsAndTitles(url)
+        for (let url of poetryURLs) {
+            let fetched = fetchAuthorsAndTitles(url)
                 .catch( (error) => toast(`${error.message}: ${url}`, "warning")); 
+            if (fetched) {
+                break
+            }
         }
     }, [])
 
@@ -298,17 +335,17 @@ function InputText(props) {
         }
     }, [title] )
 
-    // initialize data with defaults
-    fetchedPoems = sonnets
-
   return (
     <section>
         <Grid container spacing={2} direction={extraLargeScreen?"row":"column"}>
             <Grid item xs={6}>
-                <h1> Select a poem </h1>
+              <h1> Select a poem </h1>
               { authorSelector() }
               { titleSelector() }
-                <textarea value={textLines.join("\n")} id="text-input"/>
+              { loadingProgress.percentage > 0 &&
+                loadingProgress.percentage < 100 && 
+                <AuthorProgress {...loadingProgress}/>  }
+              <textarea value={textLines && textLines.join("\n")} id="text-input"/>
             </Grid>
             <Grid item xs={6}>
                 <h1> Choose your Natural Language Parser </h1>
