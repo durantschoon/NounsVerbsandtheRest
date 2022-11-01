@@ -30,30 +30,39 @@ function selector(selName, value, setter, valList) {
     )
 }
 
-function PoemSelector({
-    author, setAuthor, authorList,
-    title, setTitle, titleList,
-    loadingProgress,
-    textLines}) {
+function PoemSelector({author, setAuthor, loadingProgress}) {
+
+    function setAuthorName(name) {
+        setAuthor(prevAuthor => ({...prevAuthor, name}))
+    }
 
     function authorSelector() {
-        return selector('author', author, setAuthor, authorList)
+        console.log(`authorSelector args name = "${author.name}" list =`, author.authorNameList)
+        return selector('author', author.name, setAuthorName, author.authorNameList)
+    }
+
+    function setTitle(title) {
+        setAuthor(prevAuthor => ({...prevAuthor, title}))
     }
 
     function titleSelector() {
-        console.log(`setting title ${title} for ${author}`)
-        return selector('title', title, setTitle, titleList)
+        console.log(`titleSelector args title = "${author.currentTitle}" list =`, author.titleList)
+        return selector('title', author.currentTitle, setTitle, author.titleList)
     }
+
+    const lines = author.currentLines ? author.currentLines.join("\n") : ""
 
     return (
         <>
           <h1> Select a poem </h1>
-          { authorSelector() }
-          { titleSelector() }
+          { author && author.name && author.authorNameList && authorSelector() }
+          { /* authorSelector()  */}
+          { author && author.currentTitle && author.titleList && titleSelector() }
+          { /* titleSelector() */ }
           { loadingProgress.percentage > 0 &&
             loadingProgress.percentage < 100 &&
             <AuthorProgress {...loadingProgress}/>  }
-          <textarea value={textLines && textLines.join("\n")} id="text-input" readOnly/>
+          <textarea value={lines} id="text-input" readOnly/>
         </>
     )
 }

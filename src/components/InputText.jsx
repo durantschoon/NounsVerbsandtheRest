@@ -22,7 +22,7 @@ import {PARSERS as P,
         ParserDescriptions} from './ParserDescriptions'
 
 import sonnets, {
-    defaultAuthor, defaultAuthorList,
+    defaultAuthorName, defaultAuthorNameList,
     defaultTitle, defaultTitleList,
     defaultTextLines,
     defaultTitlesByAuthor } from '../data/sonnets.js'
@@ -31,12 +31,14 @@ function deepClone(obj) {
     return JSON.parse(JSON.stringify(obj))
 }
 
+// fetchedPoems holds the actual lines of the poems
 let fetchedPoems = sonnets
 let titlesByAuthor = deepClone(defaultTitlesByAuthor)
 
 // debug
 // const poetryURLs = ['https://poetrydb.org', 'http://165.227.95.56:3000']
-const poetryURLs = ['http://this-will-fail.com', 'http://165.227.95.56:3000']
+// const poetryURLs = ['http://this-will-fail.com', 'http://165.227.95.56:3000']
+const poetryURLs = []
 
 const defaultParserName = P.PARTS_OF_SPEECH
 
@@ -44,26 +46,20 @@ const punct = /([.,\/#!$%\^&\*;:{}=\-_`~()]+)/gm
 const spacePunct = /([\s.,\/#!$%\^&\*;:{}=\-_`~()]+)/gm
 const UNICODE_NBSP = "\u00A0"
 
-const PRE = "word" // prefix for identifying word spans by computed id
+const PRE = "word" // prefix used in the computed id of word spans
 
 function InputText(props) {
 
-    // my suspicion is that when I added a sufficiently large number of
-    // state hooks, it was no long reliable that textLines is set to
-    // defaultTextLines (implying useState is actually async)
-    let [textLines, setTextLines] = useState(defaultTextLines)
-    // console.log("1", {defaultTextLines})
-    // console.log("1", {textLines})
-    textLines = textLines || defaultTextLines
-    // console.log("2", {defaultTextLines})
-    // console.log("2", {textLines})
     const [parserName, setParserName] = useState(defaultParserName)
-    const [author, setAuthor] = useState(defaultAuthor)
-    const [authorList, setAuthorList] = useState(defaultAuthorList)
-    const [title, setTitle] = useState(defaultTitle)
-    const [titleList, setTitleList] = useState(defaultTitleList)
+    const [author, setAuthor] = useState({
+        name: defaultAuthorName,
+        titleList: defaultTitleList,
+        authorNameList: defaultAuthorNameList,
+        currentTitle: defaultTitle,
+        currentLines: defaultTextLines,
+    })
     const [toast, setToast] = useState({open: false, severity: "info", message: ""})
-    const [loadingProgress, setLoadingProgress] = useState({author: "", percentage: 0})
+    const [loadingProgress, setLoadingProgress] = useState({authorName: "", percentage: 0})
 
     const extraLargeScreen = useMediaQuery(theme => theme.breakpoints.up('xl'));
 
@@ -103,16 +99,19 @@ function InputText(props) {
     function drawNounOutlines() {
         const nounInverter = nounInverters[parserName]
 
+        console.log({nounInverter})
+
         let outlined = []
         let newNounInverter
 
         if (nounInverter.length === 0) {
-            newNounInverter = new Array(textLines.length).fill([])
+            newNounInverter = new Array(author.currentLines.length).fill([])
         } else {
             newNounInverter = R.clone(nounInverter)
         }
 
-        textLines.forEach( (line, lineNum) => {
+        console.log("author.currentLines", author.currentLines)
+        author.currentLines.forEach( (line, lineNum) => {
             if (line === '') {
                 outlined.push('')
                 return
@@ -201,7 +200,7 @@ function InputText(props) {
         }
     }
 
-    useEffect(drawNounOutlines, [textLines, parserName, nounInverters])
+    useEffect(drawNounOutlines, [author.currentLines, parserName, nounInverters])
 
     function handleParserChange(event) {
         const {value} = event.target
@@ -213,87 +212,78 @@ function InputText(props) {
     }
 
     useEffect( () => {
-        async function fetchAuthorsAndTitles(url) {
+        async function fetchPoems(url) {
             const authorURL = url + '/author'
             let response = await fetch(authorURL)
             const authorJSON = await response.json()
-            const authors = authorJSON.authors
-            const numAuthors = authors.length
+            const authorNames = authorJSON.authors
+            const numAuthors = authorNames.length
             let countAuthors = 0
 
-            // console.log({authorURL})
-            // console.log({authors})
-
-            if (authors.length === 0) {
+            if (authorNames.length === 0) {
                 throw `No authors found at ${authorURL}`
             }
 
             // fetch all the new poems before triggering an author / title change
-            for (let author of authors) {
-                let poemsByAuthorURL = `${url}/author/${encodeURIComponent(author.trim())}`
-                // console.log("author loop", {poemsByAuthorURL})
-                setLoadingProgress({author, percentage: 100 * (++countAuthors / numAuthors)})
-                // console.log("author loop A", 100 * (countAuthors / numAuthors), "%")
+            for (let authorName of authorNames) {
+                let poemsByAuthorURL = `${url}/author/${encodeURIComponent(authorName.trim())}`
+                setLoadingProgress({authorName, percentage: 100 * (++countAuthors / numAuthors)})
 
                 response = await fetch(poemsByAuthorURL)
                 let fetchedPoemsInitial = await response.json()
 
-                // console.log("author loop", {fetchedPoemsInitial})
-
                 titlesByAuthor = titlesByAuthor ? titlesByAuthor : {}
-                titlesByAuthor[author] = []
+                titlesByAuthor[authorName] = []
                 fetchedPoems = fetchedPoems ? fetchedPoems : {}
-                fetchedPoems[author] = {}
+                fetchedPoems[authorName] = {}
                 for (let poem of fetchedPoemsInitial) {
-                    titlesByAuthor[author].push(poem.title)
-                    fetchedPoems[author][poem.title] = poem.lines
+                    titlesByAuthor[authorName].push(poem.title)
+                    fetchedPoems[authorName][poem.title] = poem.lines
                 }
             }
-
             // Choose the 2nd poet just because we want it to be Emily Dickinson in our common case
             // or 1st (0th) if we end up with a one poet list
-            const authorIndex = Math.min(1, authors.length-1)
+            const authorIndex = Math.min(1, authorNames.length-1)
+            const titles = titlesByAuthor[authorNames[authorIndex]]
 
-            // Set titles first because it is reverse order of triggering updates to selectors
-            const titles = titlesByAuthor[authors[authorIndex]]
-            setTitleList(titles)
-
-            setAuthorList(authors)
-            setAuthor(authors[authorIndex])
-            return [authors, titles]
+            setAuthor({
+                name: authorNames[authorIndex],
+                titleList: titles,
+                currentTitle: titles[0],
+                authorNameList: authorNames,
+            })
         }
-        let fetchedPromises = []
-        for (let url of poetryURLs) {
-            fetchedPromises.push(
-                fetchAuthorsAndTitles(url)
-                    .catch( (error) => toastAlert(`${error.message}: ${url}`, "warning"))
-            )
-        }
+        let fetchedPromises = poetryURLs.map( url => {
+            fetchPoems(url)
+                .catch( (error) => toastAlert(`${error.message}: ${url}`, "warning"))
+        })
         Promise.all(fetchedPromises)
     }, [])
 
     useEffect( () => {
-        if (titlesByAuthor !== undefined) {
-            const titles = titlesByAuthor[author]
-            setTitleList(titles)
-            setTitle(titles ? titles[0] : "")
-        }
-    }, [author] )
+        // When the title changes, the entire poem changes
+        setAuthor( prevAuthor => {
+            console.log("HERE", {author}, fetchedPoems[author.name][author.currentTitle])
+            if (prevAuthor.currentTitle !== author.currentTitle) {
+                // reset the noun inverter so this it will be reconstructed for the current parser
+                updateValueForCurrentParser(setNounInverters, [])
+            }
+            return {...prevAuthor, currentLines: fetchedPoems[author.name][author.currentTitle]}
+        })
+    }, [author.currentTitle] )
 
     useEffect( () => {
-        // When the title changes, the entire poem changes
-        if (fetchedPoems !== undefined) {
-            // reset the noun inverter so this it will be reconstructed for the current parser
-            updateValueForCurrentParser(setNounInverters, [])
-            setTextLines(fetchedPoems[author][title])
-        }
-    }, [title] )
+        setAuthor( prevAuthor => {
+            const titles = titlesByAuthor[author.name]
+            return({
+                ...prevAuthor,
+                titleList: titles,
+                currentTitle: titles[0],
+            })
+        })
+    }, [author.name])
 
-    const poemSelectionCriteria = {
-        author, setAuthor, authorList,
-        title, setTitle, titleList,
-        loadingProgress, textLines
-    }
+    const poemSelectionCriteria = {author, setAuthor, loadingProgress}
 
     return (
         <section>
