@@ -16,7 +16,9 @@ function selector(selName, value, setter, valList) {
     let menuKey = 0
     return (
         <FormControl dense="true">
-          <InputLabel id={`${selName}-select-label`}>{capitalizeFirstLetter(selName)}</InputLabel>
+          <InputLabel id={`${selName}-select-label`}>
+            {capitalizeFirstLetter(selName)}
+          </InputLabel>
           <Select
             labelId={`${selName}-select-label`}
             id={`${selName}-select`}
@@ -30,24 +32,22 @@ function selector(selName, value, setter, valList) {
     )
 }
 
-function PoemSelector({author, setAuthor, loadingProgress}) {
-
-    function setAuthorName(name) {
-        setAuthor(prevAuthor => ({...prevAuthor, name}))
-    }
+function PoemSelector({author, authorDataUpdater, loadingProgress}) {
 
     function authorSelector() {
-        console.log(`authorSelector args name = "${author.name}" list =`, author.authorNameList)
-        return selector('author', author.name, setAuthorName, author.authorNameList)
-    }
-
-    function setTitle(title) {
-        setAuthor(prevAuthor => ({...prevAuthor, title}))
+        console.log(`authorSelector args name = "${author.name}" list =`, author.authorNames)
+        function setAuthorName(name) {
+            authorDataUpdater(() => { aDataClone.name = name})
+        }
+        return selector('author', author.name, setAuthorName, author.authorNames)
     }
 
     function titleSelector() {
-        console.log(`titleSelector args title = "${author.currentTitle}" list =`, author.titleList)
-        return selector('title', author.currentTitle, setTitle, author.titleList)
+        console.log(`titleSelector args title = "${author.currentTitle}" list =`, author.titles)
+        function setTitle(title) {
+            authorDataUpdater(() => { aDataClone.currentTitle = title})
+        }
+        return selector('title', author.currentTitle, setTitle, author.titles)
     }
 
     const lines = author.currentLines ? author.currentLines.join("\n") : ""
@@ -56,9 +56,7 @@ function PoemSelector({author, setAuthor, loadingProgress}) {
         <>
           <h1> Select a poem </h1>
           { author && author.name && author.authorNameList && authorSelector() }
-          { /* authorSelector()  */}
           { author && author.currentTitle && author.titleList && titleSelector() }
-          { /* titleSelector() */ }
           { loadingProgress.percentage > 0 &&
             loadingProgress.percentage < 100 &&
             <AuthorProgress {...loadingProgress}/>  }

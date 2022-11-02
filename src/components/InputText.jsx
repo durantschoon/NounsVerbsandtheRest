@@ -1,6 +1,5 @@
 // import PropTypes from 'prop-types';
-
-import {forwardRef, useState, useEffect} from 'react'
+import {useState, useEffect} from 'react'
 import * as R from 'ramda'
 
 import { Grid } from '@mui/material';
@@ -12,203 +11,68 @@ import Radio from '@mui/material/Radio';
 import RadioGroup from '@mui/material/RadioGroup';
 import useMediaQuery from '@mui/material/useMediaQuery';
 
+import "./PoemView.css";
+
+import NounInverter, {NounInverterMap} from '../dataClasses/NounInverter'
 import PoemSelector from './PoemSelector'
+import ParserChallenger from './Par'
+import ParserDescriptions from './ParserDescriptions'
+import {parsers, defaultParser} from '../dataClasses/Parser'
+import {Poem, defaultPoem} from '../dataClasses/Poem'
 import SnackbarAlerts from './SnackbarAlerts'
-
-import "./InputText.css";
-
-import {PARSERS as P,
-        tagWordsInLine,
-        ParserDescriptions} from './ParserDescriptions'
-
 import sonnets, {
-    defaultAuthorName, defaultAuthorNameList,
-    defaultTitle, defaultTitleList,
-    defaultTextLines,
-    defaultTitlesByAuthor } from '../data/sonnets.js'
-
-function deepClone(obj) {
-    return JSON.parse(JSON.stringify(obj))
-}
+    defaultAuthorNames,
+    defaultTitles,
+    defaultTitlesByAuthor } from '../data/sonnets'
 
 // fetchedPoems holds the actual lines of the poems
 let fetchedPoems = sonnets
-let titlesByAuthor = deepClone(defaultTitlesByAuthor)
+let titlesByAuthor = R.clone(defaultTitlesByAuthor)
 
 // debug
 // const poetryURLs = ['https://poetrydb.org', 'http://165.227.95.56:3000']
-// const poetryURLs = ['http://this-will-fail.com', 'http://165.227.95.56:3000']
+// const poetryURLs = ['http://fetch-should-fail.com', 'http://165.227.95.56:3000']
 const poetryURLs = []
-
-const defaultParserName = P.PARTS_OF_SPEECH
 
 const punct = /([.,\/#!$%\^&\*;:{}=\-_`~()]+)/gm
 const spacePunct = /([\s.,\/#!$%\^&\*;:{}=\-_`~()]+)/gm
 const UNICODE_NBSP = "\u00A0"
 
-const PRE = "word" // prefix used in the computed id of word spans
-
-function InputText(props) {
-
-    const [parserName, setParserName] = useState(defaultParserName)
-    const [author, setAuthor] = useState({
+function PoemView(props) {
+    const [parser, setParser] = useState(defaultParser)
+    const [authorData, setAuthorData] = useState(new AuthorData({
         name: defaultAuthorName,
-        titleList: defaultTitleList,
-        authorNameList: defaultAuthorNameList,
-        currentTitle: defaultTitle,
-        currentLines: defaultTextLines,
-    })
+        titles: defaultTitles,
+        authorNames: defaultAuthorNames,
+        currentPoem: defaultPoem,
+        currentParser: defaultParser,
+        // nounInverters should be updated when there are new text lines of a poem
+        nounInverters: new NounInverterMap(defaultParser.name,
+                                           defaultPoem.author,
+                                           defaultPoem.title,
+                                           new NounInverter(defaultTextLines))}))
     const [toast, setToast] = useState({open: false, severity: "info", message: ""})
     const [loadingProgress, setLoadingProgress] = useState({authorName: "", percentage: 0})
 
     const extraLargeScreen = useMediaQuery(theme => theme.breakpoints.up('xl'));
 
-    // store a noun inverter for each parser (which are the keys)
-    const [nounInverters, setNounInverters] = useState({
-        [P.PARTS_OF_SPEECH]: [],
-        [P.EN_POS]: [],
-    })
-    // nounInverter values are jagged arrays of arrays indicating if a word at a
-    //    given index (in a given line)
-    //    is an inversion from the noun-state by the parserName
-    //    e.g. nounInverters[P.PARTS_OF_SPEECH][3][7] === true
-    //      means that the eighth word (7+1) in the fourth (3+1) line (for the
-    //      P.PARTS_OF_SPEECH parser) has been inverted
-    //    i.e. inverted means now should be considered not-a-noun if originally
-    //      a noun or vice-versa
-
-    const [falsePositiveCount, setFalsePositiveCount] = useState({
-        [P.PARTS_OF_SPEECH]: 0,
-        [P.EN_POS]: 0,
-    })
-
-    const [falseNegativeCount, setFalseNegativeCount] = useState({
-        [P.PARTS_OF_SPEECH]: 0,
-        [P.EN_POS]: 0,
-    })
-
-    // Utility for setting statistics
-    function updateValueForCurrentParser(setter, value) {
-        setter ( prevObj => ({...prevObj, [parserName]: value}) )
-    }
-
     function setSnackOpen(openOrClosed) {
         setToast( prevToast => ({...prevToast, open: openOrClosed}) )
     }
 
-    function drawNounOutlines() {
-        const nounInverter = nounInverters[parserName]
-
-        console.log({nounInverter})
-
-        let outlined = []
-        let newNounInverter
-
-        if (nounInverter.length === 0) {
-            newNounInverter = new Array(author.currentLines.length).fill([])
-        } else {
-            newNounInverter = R.clone(nounInverter)
-        }
-
-        console.log("author.currentLines", author.currentLines)
-        author.currentLines.forEach( (line, lineNum) => {
-            if (line === '') {
-                outlined.push('')
-                return
-            }
-            const matchedSpacePunct = line.match(spacePunct).map(
-                s => s.replace(/ /g, UNICODE_NBSP)
-            )
-
-            let taggedWords = tagWordsInLine[parserName](line.replaceAll(punct, ''));
-            if (newNounInverter[lineNum].length === 0) {
-                newNounInverter[lineNum] = new Array(taggedWords.length).fill(false)
-            }
-
-            // even out the lengths of the two arrays for zipping
-            if (matchedSpacePunct.length < taggedWords.length) {
-                matchedSpacePunct.push('')
-            } else if (taggedWords.length < matchedSpacePunct.length) {
-                taggedWords.push(['', ''])
-            }
-
-            // zip results in the correct order (i.e. starting with a space or not)
-            let first, second
-            if (line[0].match(/\s/)) {
-                first = matchedSpacePunct
-                second = addNounSpans(taggedWords, lineNum)
-            } else {
-                first = addNounSpans(taggedWords, lineNum)
-                second = matchedSpacePunct
-            }
-            const recombined = R.unnest(R.zip(first, second)).join('')
-            outlined.push(recombined)
-        })
-        if (nounInverter.length === 0) {
-            // only set this once on initial load
-            updateValueForCurrentParser(setNounInverters, newNounInverter)
-        }
-        document.getElementById("text-output").innerHTML = outlined.join('<br>')
-        updateValueForCurrentParser(
-            setFalsePositiveCount,
-            document.getElementsByClassName("non-noun inverted").length
-        )
-        updateValueForCurrentParser(
-            setFalseNegativeCount,
-            document.getElementsByClassName("noun inverted").length
-        )
-        addClickHandlersToSpans()
-    }
-
-    function invertNoun(line, word) {
-        setNounInverters( prevNounInverters => {
-            const newNounInverter = R.clone(prevNounInverters[parserName])
-            newNounInverter[line][word] = !newNounInverter[line][word]
-            return {...prevNounInverters, [parserName]: newNounInverter}
-        })
-        drawNounOutlines()
-    }
-
-    const addNounSpans = (tagged, lineNum) => {
-        const nounInverter = nounInverters[parserName]
-        let mainClass
-        let extraClasses
-        let wordNum = 0
-        return tagged.map( ([word, tag]) => {
-            extraClasses = ""
-            let nounTest = (tag === 'NN' || tag === 'NNS')
-            if (nounInverter.length > 0 && nounInverter[lineNum][wordNum]) {
-                nounTest = !nounTest
-                extraClasses = "inverted"
-            }
-            mainClass = nounTest ? "noun" : "non-noun"
-            return `<span class="${mainClass} ${extraClasses}" id="${PRE}_${lineNum}_${wordNum++}">${word}</span>`
-        })
-    }
-
-    function addClickHandlersToSpans() {
-        const classNames = ['noun', 'non-noun']
-        for (const className of classNames) {
-            const spans = document.getElementsByClassName(className)
-            for (const span of spans) {
-                span.addEventListener('click', (event) => {
-                    const [line, word] = event.target.id.split('_').slice(1)
-                    invertNoun(parseInt(line, 10), parseInt(word, 10))
-                    event.stopPropagation() // still fails to stop 2nd invertNoun call
-                })
-            }
-        }
-    }
-
-    useEffect(drawNounOutlines, [author.currentLines, parserName, nounInverters])
-
-    function handleParserChange(event) {
-        const {value} = event.target
-        setParserName(value)
-    }
-
     function toastAlert(message, severity) {
         setToast({message, severity, open: true})
+    }
+
+    /*
+      Clone authorData as aDataClone and run func with args.
+      The cloned variable aDataClone is intended to be accessed and mutated by func
+      Finally, use the modified clone to set the author data.
+      */
+    function authorDataUpdater(func, args) {
+        let aDataClone = R.clone(authorData) // deep copy
+        func(...args)
+        setAuthorData(aDataClone)
     }
 
     useEffect( () => {
@@ -232,25 +96,33 @@ function InputText(props) {
                 response = await fetch(poemsByAuthorURL)
                 let fetchedPoemsInitial = await response.json()
 
-                titlesByAuthor = titlesByAuthor ? titlesByAuthor : {}
+                titlesByAuthor = titlesByAuthor ?? {}
                 titlesByAuthor[authorName] = []
-                fetchedPoems = fetchedPoems ? fetchedPoems : {}
+                fetchedPoems = fetchedPoems ?? {}
                 fetchedPoems[authorName] = {}
                 for (let poem of fetchedPoemsInitial) {
                     titlesByAuthor[authorName].push(poem.title)
                     fetchedPoems[authorName][poem.title] = poem.lines
                 }
             }
-            // Choose the 2nd poet just because we want it to be Emily Dickinson in our common case
-            // or 1st (0th) if we end up with a one poet list
+            // Choose the 2nd poet just because we want it to be
+            // Emily Dickinson if the vanilla PoemDB server connects
+            // But set index to 0 if we fetch from a source with only one poet
             const authorIndex = Math.min(1, authorNames.length-1)
-            const titles = titlesByAuthor[authorNames[authorIndex]]
 
-            setAuthor({
-                name: authorNames[authorIndex],
-                titleList: titles,
-                currentTitle: titles[0],
-                authorNameList: authorNames,
+            const author = authorNames[authorIndex]
+            const titles = titlesByAuthor[author]
+            const title = titles[0]
+            const lines = fetchedPoems[author][title]
+
+            const currentPoem = new Poem(author, title, lines)
+
+            setAuthorData({
+                name: author,
+                titles,
+                authorNames,
+                currentPoem,
+                currentParser: parser,
             })
         }
         let fetchedPromises = poetryURLs.map( url => {
@@ -260,70 +132,37 @@ function InputText(props) {
         Promise.all(fetchedPromises)
     }, [])
 
+    // When the title changes, the entire poem changes
     useEffect( () => {
-        // When the title changes, the entire poem changes
-        setAuthor( prevAuthor => {
-            console.log("HERE", {author}, fetchedPoems[author.name][author.currentTitle])
-            if (prevAuthor.currentTitle !== author.currentTitle) {
+        setAuthorData( prevAuthor => {
+            if (prevAuthor.currentTitle !== authorData.currentTitle) {
                 // reset the noun inverter so this it will be reconstructed for the current parser
                 updateValueForCurrentParser(setNounInverters, [])
             }
-            return {...prevAuthor, currentLines: fetchedPoems[author.name][author.currentTitle]}
+            return {...prevAuthor, currentLines: fetchedPoems[authorData.name][authorData.currentTitle]}
         })
-    }, [author.currentTitle] )
+    }, [authorData.currentTitle] )
 
+    // When the author changes, set the current poem to the first one for the poet
     useEffect( () => {
-        setAuthor( prevAuthor => {
-            const titles = titlesByAuthor[author.name]
+        setAuthorData( prevAuthor => {
+            const titles = titlesByAuthor[authorData.name]
             return({
                 ...prevAuthor,
-                titleList: titles,
+                titles: titles,
                 currentTitle: titles[0],
             })
         })
-    }, [author.name])
-
-    const poemSelectionCriteria = {author, setAuthor, loadingProgress}
+    }, [authorData.name])
 
     return (
         <section>
           <Grid container spacing={2} direction={extraLargeScreen?"row":"column"}>
             <Grid item xs={6}>
-              <PoemSelector {...poemSelectionCriteria} />
+              <PoemSelector {...{authorData, authorDataUpdater, loadingProgress}} />
             </Grid>
             <Grid item xs={6}>
-              <h1> Choose your Natural Language Parser </h1>
-              <div>
-                <ParserDescriptions />
-                <FormControl>
-                  <FormLabel id="parsers-radio-buttons-group-label">Parsers</FormLabel>
-                  <RadioGroup
-                    row
-                    aria-labelledby="parsers-radio-buttons-group-label"
-                    defaultValue={defaultParserName}
-                    name="parserName"
-                    value={parserName}
-                    onChange={handleParserChange}
-                  >
-                    <FormControlLabel value="parts-of-speech" control={<Radio />} label="Parts-of-Speech" />
-                    <FormControlLabel value="en-pos" control={<Radio />} label="en-pos" />
-                  </RadioGroup>
-                </FormControl>
-              </div>
-              <h1> Correct what is and is not a noun </h1>
-              <ul>
-                <li>Click on a word with the <span className="non-noun">Plus</span> <img id="non-noun-cursor-img"></img> cursor to change a word INTO a noun.</li>
-                <li>Click on a word with the <span className="noun">Back</span> <img id="noun-cursor-img"></img> cursor to change a word BACK TO a non-noun.</li>
-              </ul>
-              <div id="text-output"></div>
-              <fieldset id="stats-fieldset">
-                <legend id="stats-legend"><b><i>Statistics for {parserName}</i></b></legend>
-                <div>
-                  <span><b>False Positives:</b> {falsePositiveCount[parserName]}  </span>
-                  <span><b>False Negatives:</b> {falseNegativeCount[parserName]}</span> 
-                </div>
-                <b>Total Incorrect:</b> {falsePositiveCount[parserName] + falseNegativeCount[parserName]}
-              </fieldset>
+              <ParserChallenger {...{authorData, authorDataUpdater, parser}}/>
             </Grid>
           </Grid>
           <SnackbarAlerts {...{...toast, setSnackOpen}}/>
@@ -331,4 +170,4 @@ function InputText(props) {
     )
 }
 
-export default InputText;
+export default PoemView;
