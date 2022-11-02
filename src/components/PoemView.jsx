@@ -166,27 +166,20 @@ function InputText(props) {
         Promise.all(fetchedPromises)
     }, [])
 
+    // When the title changes, update the lines
     useEffect( () => {
-        // When the title changes, the entire poem changes
-        setAuthorData( prevAuthor => {
-            console.log("HERE", {authorData}, fetchedPoems[authorData.name][authorData.currentTitle])
-            if (prevAuthor.currentTitle !== authorData.currentTitle) {
-                // reset the noun inverter so this it will be reconstructed for the current parser
-                updateValueForCurrentParser(setNounInverters, [])
-            }
-            return {...prevAuthor, currentLines: fetchedPoems[authorData.name][authorData.currentTitle]}
-        })
-    }, [authorData.currentTitle] )
+        const author = authorData.name
+        const title = authorData.currentPoem.title
+        const lines = fetchedPoems[author][title] // <-- changing
+        authorDataUpdater(() => {aDataClone.currentPoem = new Poem(author, title, lines)})
+    }, [authorData.currentPoem.title] )
 
+    // When the author name changes, set the current title to the first one fetched
     useEffect( () => {
-        setAuthorData( prevAuthor => {
-            const titles = titlesByAuthor[authorData.name]
-            return({
-                ...prevAuthor,
-                titles: titles,
-                currentTitle: titles[0],
-            })
-        })
+        const author = authorData.name
+        const title = titlesByAuthor[author][0]   // <-- changing
+        const lines = fetchedPoems[author][title] // <-- changing
+        authorDataUpdater(() => {aDataClone.currentPoem = new Poem(author, title, lines)})
     }, [authorData.name])
 
     const poemSelectionCriteria = {authorData, setAuthorData, loadingProgress}
@@ -198,38 +191,7 @@ function InputText(props) {
               <PoemSelector {...poemSelectionCriteria} />
             </Grid>
             <Grid item xs={6}>
-              <h1> Choose your Natural Language Parser </h1>
-              <div>
-                <ParserDescriptions />
-                <FormControl>
-                  <FormLabel id="parsers-radio-buttons-group-label">Parsers</FormLabel>
-                  <RadioGroup
-                    row
-                    aria-labelledby="parsers-radio-buttons-group-label"
-                    defaultValue={defaultParserName}
-                    name="parserName"
-                    value={parserName}
-                    onChange={handleParserChange}
-                  >
-                    <FormControlLabel value="parts-of-speech" control={<Radio />} label="Parts-of-Speech" />
-                    <FormControlLabel value="en-pos" control={<Radio />} label="en-pos" />
-                  </RadioGroup>
-                </FormControl>
-              </div>
-              <h1> Correct what is and is not a noun </h1>
-              <ul>
-                <li>Click on a word with the <span className="non-noun">Plus</span> <img id="non-noun-cursor-img"></img> cursor to change a word INTO a noun.</li>
-                <li>Click on a word with the <span className="noun">Back</span> <img id="noun-cursor-img"></img> cursor to change a word BACK TO a non-noun.</li>
-              </ul>
-              <div id="text-output"></div>
-              <fieldset id="stats-fieldset">
-                <legend id="stats-legend"><b><i>Statistics for {parserName}</i></b></legend>
-                <div>
-                  <span><b>False Positives:</b> {falsePositiveCount[parserName]}  </span>
-                  <span><b>False Negatives:</b> {falseNegativeCount[parserName]}</span> 
-                </div>
-                <b>Total Incorrect:</b> {falsePositiveCount[parserName] + falseNegativeCount[parserName]}
-              </fieldset>
+              <ParserChallenger {...{authorData, authorDataUpdater, parser}}/>
             </Grid>
           </Grid>
           <SnackbarAlerts {...{...toast, setSnackOpen}}/>
