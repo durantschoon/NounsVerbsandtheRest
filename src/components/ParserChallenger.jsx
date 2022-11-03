@@ -14,7 +14,7 @@ function ParserChallenger({authorData, authorDataUpdater, parser}) {
 
     function _drawNounOutlines(aDataClone) {
         document.getElementById("text-output").innerHTML = aDataClone.getTaggedWordsHTML()
-        stats = {
+        const stats = {
             falsePos: document.getElementsByClassName("non-noun inverted").length,
             falseNeg: document.getElementsByClassName("non-noun inverted").length
         }

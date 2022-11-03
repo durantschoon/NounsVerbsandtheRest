@@ -136,9 +136,12 @@ export default class AuthorData {
     }
 
     updateCurrentStats({falsePos, falseNeg}) {
-        // need to return the new version for authorData update, right? 
-        this.getNounInverter().falsePositiveCount = falsePos
-        this.getNounInverter().falseNegativeCount = falseNeg
+        // need to return the new version for authorData update, right?
+        const nounInverter = this.getNounInverter()
+        if (nounInverter) {
+            nounInverter.falsePositiveCount = falsePos
+            nounInverter.falseNegativeCount = falseNeg
+        }
     }
 }
 

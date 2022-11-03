@@ -137,17 +137,21 @@ function PoemView(props) {
     useEffect( () => {
         const author = authorData.name
         const title = authorData.currentPoem?.title
+        if ( ! fetchedPoems?.[author]?.[title] ) return
+
         const lines = fetchedPoems[author][title] // <-- changing
         authorDataUpdater((aDataClone) => {
             aDataClone.currentPoem = new Poem(author, title, lines)
         })
-    }, [authorData?.currentPoem?.title] )
+    }, [authorData?.currentPoem?.title, fetchedPoems] )
 
     // When the author name changes, set the current title to the first one fetched
     useEffect( () => {
         const author = authorData.name
-        const title = titlesByAuthor[author][0]   // <-- changing
-        const lines = fetchedPoems[author][title] // <-- changing
+        const title = titlesByAuthor?.[author]?.[0] // <-- changing
+        if ( ! fetchedPoems?.[author]?.[title] ) return
+
+        const lines = fetchedPoems[author][title]   // <-- changing
         authorDataUpdater((aDataClone) => {
             aDataClone.currentPoem = new Poem(author, title, lines)
         })
