@@ -24,8 +24,8 @@ export class NounInverter {
     }
     initLineIfNeeded(lineNum, lineLength) { 
         if (this.rep.length === 0) return
-        console.log("this.rep[lineNum-1]", this.rep[lineNum-1])
-            if (this.rep[lineNum-1].length === 0) {
+        // console.log(`NounInverter this.rep[${lineNum-1}]`, this.rep[lineNum-1])
+        if (this.rep[lineNum-1].length === 0) {
             this.rep[lineNum-1] = new Array(lineLength).fill(false)
         }
     }

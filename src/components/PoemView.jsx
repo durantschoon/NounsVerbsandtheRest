@@ -16,12 +16,23 @@ import Poem from '../dataClasses/Poem'
 import SnackbarAlerts from './SnackbarAlerts'
 import sonnets, {defaultTitlesByAuthor} from '../data/sonnets'
 
-let fetchedPoems = sonnets
+// valid keys of fetchedPoems are 'default', 'current' or a URL from poetryURLs
+let fetchedPoems = {default: sonnets, current: sonnets}
 
 // debug
 // const poetryURLs = ['https://poetrydb.org', 'http://165.227.95.56:3000']
 // const poetryURLs = ['http://fetch-should-fail.com', 'http://165.227.95.56:3000']
 const poetryURLs = []
+
+// sets the value of 'current' key to the first-most URL of poetryURLs
+function setHighestRankFetchedPoems() {
+    for (let url of poetryURLs) {
+        if (Object.keys(fetchedPoems[url]).length > 0) {
+            console.log(">>> Setting current fetched poem to those from", url)
+            fetchedPoems['current'] = fetchedPoems[url]
+        }
+    }
+}
 
 function PoemView(props) {
     const [parser, setParser] = useState(defaultParser)
@@ -62,6 +73,7 @@ function PoemView(props) {
     }
 
     useEffect( () => {
+        console.log("BEGIN useEffect 1")
         async function fetchPoems(url) {
             const authorURL = url + '/author'
             let response = await fetch(authorURL)
@@ -87,11 +99,11 @@ function PoemView(props) {
                 let fetchedPoemsInitial = await response.json()
 
                 newTitlesByAuthor[authorName] = []
-                fetchedPoems = fetchedPoems ?? {}
-                fetchedPoems[authorName] = {}
+                fetchedPoems[url] = fetchedPoems[url] ?? {}
+                fetchedPoems[url][authorName] = {}
                 for (let poem of fetchedPoemsInitial) {
                     newTitlesByAuthor[authorName].push(poem.title)
-                    fetchedPoems[authorName][poem.title] = poem.lines
+                    fetchedPoems[url][authorName][poem.title] = poem.lines
                 }
             }
             setTitlesByAuthor(newTitlesByAuthor)
@@ -103,7 +115,7 @@ function PoemView(props) {
 
             const author = authorNames[authorIndex]
             const title = titles[0]
-            const lines = fetchedPoems[author][title]
+            const lines = fetchedPoems[url][author][title]
 
             const currentPoem = new Poem(author, title, lines)
 
@@ -115,36 +127,51 @@ function PoemView(props) {
                 currentParser: parser,
             })
         }
-        let fetchedPromises = poetryURLs.map( url => {
+        const fetchedPromises = poetryURLs.map( url => {
             fetchPoems(url)
                 .catch( (error) => toastAlert(`${error.message}: ${url}`, "warning"))
+                .then()
         })
         Promise.all(fetchedPromises)
+        setHighestRankFetchedPoems()
+        console.log("END useEffect 1")
     }, [])
 
     // When the title changes, update the lines
     useEffect( () => {
+        console.log("BEGIN useEffect 2: authorData.currentPoem.title")
         const author = authorData.name
         const title = authorData.currentPoem?.title
-        if ( ! fetchedPoems?.[author]?.[title] ) return
+        console.log(`      useEffect 2: `, {authorData})
+        console.log(`      useEffect 2: `, {fetchedPoems})
+        console.log(`      useEffect 2: `, fetchedPoems?.['current']?.[author]?.[title])
+        if ( ! fetchedPoems?.['current']?.[author]?.[title] ) return
 
-        const lines = fetchedPoems[author][title] // <-- changing
+        console.log(`      useEffect 2: fetchedPoems['current'][${author}][${title}] ${fetchedPoems['current'][author][title]}`)
+        const lines = fetchedPoems['current'][author][title] // <-- changing
         authorDataUpdater((aDataClone) => {
             aDataClone.currentPoem = new Poem(author, title, lines)
         })
-    }, [authorData?.currentPoem?.title, fetchedPoems] )
+        console.log("END useEffect 2: authorData.currentPoem.title")
+    }, [authorData.currentPoem.title] )
 
     // When the author name changes, set the current title to the first one fetched
     useEffect( () => {
+        console.log("BEGIN useEffect 3: authorData.name")
         const author = authorData.name
         const title = titlesByAuthor?.[author]?.[0] // <-- changing
-        if ( ! fetchedPoems?.[author]?.[title] ) return
+        console.log(`      useEffect 3: `, {authorData})
+        console.log(`      useEffect 3: `, {fetchedPoems})
+        console.log(`      useEffect 3: `, fetchedPoems?.['current']?.[author]?.[title])
+        if ( ! fetchedPoems?.['current']?.[author]?.[title] ) return
 
-        const lines = fetchedPoems[author][title]   // <-- changing
+        console.log(`      useEffect 3: fetchedPoems['current'][${author}][${title}] ${fetchedPoems['current'][author][title]}`)
+        const lines = fetchedPoems['current'][author][title]   // <-- changing
         authorDataUpdater((aDataClone) => {
             aDataClone.currentPoem = new Poem(author, title, lines)
         })
-    }, [authorData?.name])
+        console.log("END useEffect 3: authorData.name")
+    }, [authorData.name])
 
     return (
         <section>
