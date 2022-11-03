@@ -14,26 +14,20 @@ import ParserChallenger from './ParserChallenger'
 import {parsers, defaultParser} from '../dataClasses/Parser'
 import Poem from '../dataClasses/Poem'
 import SnackbarAlerts from './SnackbarAlerts'
-import sonnets, {defaultTitlesByAuthor} from '../data/sonnets'
+import sonnets, {
+    defaultAuthorNames,
+    defaultTitlesByAuthor} from '../data/sonnets'
 
 // valid keys of fetchedPoems are 'default', 'current' or a URL from poetryURLs
 let fetchedPoems = {default: sonnets, current: sonnets}
+// valid keys of authorNames are 'default', 'current' or a URL from poetryURLs
+let authorNames = {default: defaultAuthorNames, current: defaultAuthorNames}
 let titlesByAuthor = R.clone(defaultTitlesByAuthor)
 
 // debug
 // const poetryURLs = ['https://poetrydb.org', 'http://165.227.95.56:3000']
 // const poetryURLs = ['http://fetch-should-fail.com', 'http://165.227.95.56:3000']
 const poetryURLs = []
-
-// sets the value of 'current' key to the first-most URL of poetryURLs
-function setHighestRankFetchedPoems() {
-    for (let url of poetryURLs) {
-        if (Object.keys(fetchedPoems[url]).length > 0) {
-            console.log(">>> Setting current fetched poem to those from", url)
-            fetchedPoems['current'] = fetchedPoems[url]
-        }
-    }
-}
 
 function PoemView(props) {
     const [parser, setParser] = useState(defaultParser)
@@ -72,22 +66,55 @@ function PoemView(props) {
         setToast({message, severity, open: true})
     }
 
+    /* setHighestRankFetchedPoems Update the fetched poems to the "best" results
+      - sets the value of fetchedPoems 'current' key to the first-most URL of poetryURLs
+      - calls setAuthorData on the latest data
+      */
+    function setHighestRankFetchedPoems() {
+        for (let url of poetryURLs) {
+            if (Object.keys(fetchedPoems[url]).length > 0) {
+                console.log(">>> Setting current fetched poem to those from", url)
+                fetchedPoems['current'] = fetchedPoems[url]
+                authorNames['current'] = authorNames[url]
+            }
+        }
+        // Choose the 2nd poet just because we want it to be
+        // Emily Dickinson if the vanilla poemdb server comes up.
+        // But set it to 0th if we end up with only one poet
+        const authorIndex = Math.min(1, authorNames['current'].length-1)
+        const author = authorNames['current'][authorIndex]
+
+        const titles = titlesByAuthor[author]
+        const title = titles[0]
+        const lines = fetchedPoems['current'][author][title]
+
+        const currentPoem = new Poem(author, title, lines)
+
+        setAuthorData({
+            name: author,
+            titles: titles,
+            authorNames: authorNames['current'],
+            currentPoem,
+            currentParser: parser,
+        })
+    }
+
     useEffect( () => {
         console.log("BEGIN useEffect 1")
         async function fetchPoems(url) {
             const authorURL = url + '/author'
             let response = await fetch(authorURL)
             const authorJSON = await response.json()
-            const authorNames = authorJSON.authors
             const numAuthors = authorNames.length
             let countAuthors = 0
 
-            if (authorNames.length === 0) {
+            authorNames[url] = authorJSON.authors
+            if (authorNames[url].length === 0) {
                 throw `No authors found at ${authorURL}`
             }
 
             // fetch all the new poems before triggering an author / title change
-            for (let authorName of authorNames) {
+            for (let authorName of authorNames[url]) {
                 let poemsByAuthorURL =
                     `${url}/author/${encodeURIComponent(authorName.trim())}`
                 setLoadingProgress({authorName,
@@ -104,25 +131,6 @@ function PoemView(props) {
                     fetchedPoems[url][authorName][poem.title] = poem.lines
                 }
             }
-            // Choose the 2nd poet just because we want it to be
-            // Emily Dickinson if the vanilla poemdb server comes up.
-            // But set it to 0th if we end up with only one poet
-            const authorIndex = Math.min(1, authorNames.length-1)
-            const titles = titlesByAuthor[authorNames[authorIndex]]
-
-            const author = authorNames[authorIndex]
-            const title = titles[0]
-            const lines = fetchedPoems[url][author][title]
-
-            const currentPoem = new Poem(author, title, lines)
-
-            setAuthorData({
-                name: author,
-                titles: titles,
-                authorNames,
-                currentPoem,
-                currentParser: parser,
-            })
         }
         const fetchedPromises = poetryURLs.map( url => {
             fetchPoems(url)
