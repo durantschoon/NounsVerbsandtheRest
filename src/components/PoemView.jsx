@@ -7,21 +7,16 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 
 import "./PoemView.css";
 
-import AuthorData from '../dataClasses/AuthorData'
+import AuthorData, {defaultAuthorData} from '../dataClasses/AuthorData'
 import NounInverter, {NounInverterMap} from '../dataClasses/NounInverter'
 import PoemSelector from './PoemSelector'
 import ParserChallenger from './ParserChallenger'
 import {parsers, defaultParser} from '../dataClasses/Parser'
-import Poem, {defaultPoem} from '../dataClasses/Poem'
+import Poem from '../dataClasses/Poem'
 import SnackbarAlerts from './SnackbarAlerts'
-import sonnets, {
-    defaultAuthorName,
-    defaultAuthorNames,
-    defaultTitles,
-    defaultTitlesByAuthor } from '../data/sonnets'
+import sonnets, {defaultTitlesByAuthor} from '../data/sonnets'
 
 let fetchedPoems = sonnets
-let titlesByAuthor = R.clone(defaultTitlesByAuthor)
 
 // debug
 // const poetryURLs = ['https://poetrydb.org', 'http://165.227.95.56:3000']
@@ -30,16 +25,8 @@ const poetryURLs = []
 
 function PoemView(props) {
     const [parser, setParser] = useState(defaultParser)
-    const [authorData, setAuthorData] = useState(new AuthorData({
-        name: defaultAuthorName,
-        titles: defaultTitles,
-        authorNames: defaultAuthorNames,
-        currentPoem: defaultPoem,
-        currentParser: defaultParser,
-    }))
-
-    console.log("defaultPoem =", defaultPoem)
-    console.log("authorData.currentPoem =", authorData.currentPoem)
+    const [authorData, setAuthorData] = useState(defaultAuthorData)
+    const [titlesByAuthor, setTitlesByAuthor] = useState(R.clone(defaultTitlesByAuthor))
 
     const [toast, setToast] = useState({open: false, severity: "info", message: ""})
     const [loadingProgress, setLoadingProgress] = useState({authorName: "", percentage: 0})
@@ -87,6 +74,8 @@ function PoemView(props) {
                 throw `No authors found at ${authorURL}`
             }
 
+            let newTitlesByAuthor = {}
+
             // fetch all the new poems before triggering an author / title change
             for (let authorName of authorNames) {
                 let poemsByAuthorURL =
@@ -97,20 +86,20 @@ function PoemView(props) {
                 response = await fetch(poemsByAuthorURL)
                 let fetchedPoemsInitial = await response.json()
 
-                titlesByAuthor = titlesByAuthor ?? {}
-                titlesByAuthor[authorName] = []
+                newTitlesByAuthor[authorName] = []
                 fetchedPoems = fetchedPoems ?? {}
                 fetchedPoems[authorName] = {}
                 for (let poem of fetchedPoemsInitial) {
-                    titlesByAuthor[authorName].push(poem.title)
+                    newTitlesByAuthor[authorName].push(poem.title)
                     fetchedPoems[authorName][poem.title] = poem.lines
                 }
             }
+            setTitlesByAuthor(newTitlesByAuthor)
             // Choose the 2nd poet just because we want it to be
             // Emily Dickinson if the vanilla poemdb server comes up.
             // But set it to 0th if we end up with only one poet
             const authorIndex = Math.min(1, authorNames.length-1)
-            const titles = titlesByAuthor[authorNames[authorIndex]]
+            const titles = newTitlesByAuthor[authorNames[authorIndex]]
 
             const author = authorNames[authorIndex]
             const title = titles[0]

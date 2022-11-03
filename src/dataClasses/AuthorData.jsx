@@ -1,6 +1,15 @@
 import {useMemo} from 'react';
 
 import {NounInverter, NounInverterMap} from './NounInverter'
+import {defaultParser} from '../dataClasses/Parser'
+import {defaultPoem} from './Poem'
+
+import {
+    defaultAuthorName,
+    defaultAuthorNames,
+    defaultTitles,
+    defaultTitlesByAuthor } from '../data/sonnets'
+
 
 const spannedWord = (mainClass, extraClasses, lineNum, wordNum) => (
     `<span class="${mainClass} ${extraClasses}" id="word_${lineNum}_${wordNum}">
@@ -8,7 +17,7 @@ const spannedWord = (mainClass, extraClasses, lineNum, wordNum) => (
      </span>`
 )
 
-// returns html
+// returns HTML
 const addNounSpans = (tagged, lineNum) => {
     const nounInverter = authorData.getNounInverter()
     let mainClass
@@ -41,9 +50,9 @@ export default class AuthorData {
       current poem
 
       */
-    constuctor(data) {
+    constructor(data) {
+        console.log("--> AuthorData constuctor data =", data)
         Object.assign(this, data)
-
         console.log("this.currentPoem =", this.currentPoem)
 
         for (const key of requiredKeys)
@@ -145,3 +154,10 @@ export default class AuthorData {
     }
 }
 
+export const defaultAuthorData = new AuthorData({
+    name: defaultAuthorName,
+    titles: defaultTitles,
+    authorNames: defaultAuthorNames,
+    currentPoem: defaultPoem,
+    currentParser: defaultParser,
+})
