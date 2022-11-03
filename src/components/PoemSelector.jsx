@@ -36,7 +36,7 @@ function PoemSelector({authorData, authorDataUpdater, loadingProgress}) {
 
     function authorSelector() {
         function setAuthorName(name) {
-            authorDataUpdater((aDataClone) => { aDataClone.name = name})
+            return authorDataUpdater((aDataClone) => { aDataClone.name = name})
         }
         const {name, authorNames} = authorData
         return selector('author', name, setAuthorName, authorNames)
@@ -44,7 +44,7 @@ function PoemSelector({authorData, authorDataUpdater, loadingProgress}) {
 
     function titleSelector() {
         function setTitle(title) {
-            authorDataUpdater((aDataClone) => { aDataClone.currentPoem.title = title})
+            return authorDataUpdater((aDataClone) => { aDataClone.currentPoem.title = title})
         }
         const title = authorData.currentPoem.title
         const titles = authorData.titles

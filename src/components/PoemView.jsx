@@ -151,7 +151,7 @@ function PoemView(props) {
           <Grid container spacing={2} direction={extraLargeScreen?"row":"column"}>
             <Grid item xs={6}>
               { authorData?.currentPoem && 
-                <PoemSelector {...{authorData, setAuthorData, loadingProgress}} />
+                <PoemSelector {...{authorData, authorDataUpdater, loadingProgress}} />
               }
             </Grid>
             <Grid item xs={6}>

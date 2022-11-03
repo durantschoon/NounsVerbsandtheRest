@@ -11,7 +11,7 @@ export class NounInverter {
         //      at line 3, word 7 has been inverted by the user
         //    i.e. inverted means now should be considered not-a-noun if originally
         //      a noun or vice-versa
-        this.rep = poemTextLines ? new Array(poemTextLines.length).fill([]) : []
+        this.rep = poemTextLines ? new Array(poemTextLines.length).fill([]) : [[]]
     }
     get(line, word) {
         return this.rep[line-1][word-1]
@@ -22,8 +22,10 @@ export class NounInverter {
     flip(line, word) {
         this.set(line, word, ! this.get(line, word))
     }
-    initLineIfNeeded(lineNum, lineLength) {
-        if (this.rep[lineNum-1].length === 0) {
+    initLineIfNeeded(lineNum, lineLength) { 
+        if (this.rep.length === 0) return
+        console.log("this.rep[lineNum-1]", this.rep[lineNum-1])
+            if (this.rep[lineNum-1].length === 0) {
             this.rep[lineNum-1] = new Array(lineLength).fill(false)
         }
     }
