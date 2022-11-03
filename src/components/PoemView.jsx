@@ -96,13 +96,20 @@ function PoemView(props) {
 
         const currentPoem = new Poem(author, title, lines)
 
-        setAuthorData({
-            name: author,
-            titles: titles,
-            authorNames: authorNames['current'],
-            currentPoem,
-            currentParser: parser,
-        })
+        // infinite loop still occurs when this whole block is commented out
+
+        console.log("fetchedPoems['current'] !== fetchedPoems['default']",
+                    fetchedPoems['current'] !== fetchedPoems['default'])
+
+        // if (fetchedPoems['current'] !== fetchedPoems['default']) {
+        //     setAuthorData({
+        //         name: author,
+        //         titles: titles,
+        //         authorNames: authorNames['current'],
+        //         currentPoem,
+        //         currentParser: parser,
+        //     })
+        // }
     }
 
     useEffect( () => {
@@ -129,11 +136,10 @@ function PoemView(props) {
                 response = await fetch(poemsByAuthorURL)
                 let fetchedPoemsInitial = await response.json()
 
-                titlesByAuthor['current'][authorName] = []
-                fetchedPoems[url] = fetchedPoems[url] ?? {}
-                fetchedPoems[url][authorName] = {}
+                titlesByAuthor[url][authorName] = []
+                fetchedPoems[url] = {authorName: {}}
                 for (let poem of fetchedPoemsInitial) {
-                    titlesByAuthor['current'][authorName].push(poem.title)
+                    titlesByAuthor[url][authorName].push(poem.title)
                     fetchedPoems[url][authorName][poem.title] = poem.lines
                 }
             }
@@ -141,7 +147,6 @@ function PoemView(props) {
         const fetchedPromises = poetryURLs.map( url => {
             fetchPoems(url)
                 .catch( (error) => toastAlert(`${error.message}: ${url}`, "warning"))
-                .then()
         })
         Promise.all(fetchedPromises)
         setHighestRankFetchedPoems()
