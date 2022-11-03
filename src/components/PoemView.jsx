@@ -18,11 +18,15 @@ import sonnets, {
     defaultAuthorNames,
     defaultTitlesByAuthor} from '../data/sonnets'
 
+// Consider merging these three data structures into one:
+
 // valid keys of fetchedPoems are 'default', 'current' or a URL from poetryURLs
 let fetchedPoems = {default: sonnets, current: sonnets}
 // valid keys of authorNames are 'default', 'current' or a URL from poetryURLs
 let authorNames = {default: defaultAuthorNames, current: defaultAuthorNames}
-let titlesByAuthor = R.clone(defaultTitlesByAuthor)
+let titlesByAuthorClone = R.clone(defaultTitlesByAuthor)
+// valid keys of titlesByAuthor are 'default', 'current' or a URL from poetryURLs
+let titlesByAuthor = {default: titlesByAuthorClone, current: titlesByAuthorClone}
 
 // debug
 // const poetryURLs = ['https://poetrydb.org', 'http://165.227.95.56:3000']
@@ -76,6 +80,7 @@ function PoemView(props) {
                 console.log(">>> Setting current fetched poem to those from", url)
                 fetchedPoems['current'] = fetchedPoems[url]
                 authorNames['current'] = authorNames[url]
+                titlesByAuthor['current'] = titlesByAuthor[url]
             }
         }
         // Choose the 2nd poet just because we want it to be
@@ -84,7 +89,7 @@ function PoemView(props) {
         const authorIndex = Math.min(1, authorNames['current'].length-1)
         const author = authorNames['current'][authorIndex]
 
-        const titles = titlesByAuthor[author]
+        const titles = titlesByAuthor['current'][author]
         const title = titles[0]
         const lines = fetchedPoems['current'][author][title]
 
@@ -123,11 +128,11 @@ function PoemView(props) {
                 response = await fetch(poemsByAuthorURL)
                 let fetchedPoemsInitial = await response.json()
 
-                titlesByAuthor[authorName] = []
+                titlesByAuthor['current'][authorName] = []
                 fetchedPoems[url] = fetchedPoems[url] ?? {}
                 fetchedPoems[url][authorName] = {}
                 for (let poem of fetchedPoemsInitial) {
-                    titlesByAuthor[authorName].push(poem.title)
+                    titlesByAuthor['current'][authorName].push(poem.title)
                     fetchedPoems[url][authorName][poem.title] = poem.lines
                 }
             }
@@ -164,7 +169,7 @@ function PoemView(props) {
     useEffect( () => {
         console.log("BEGIN useEffect 3: authorData.name")
         const author = authorData.name
-        const title = titlesByAuthor?.[author]?.[0] // <-- changing
+        const title = titlesByAuthor['current']?.[author]?.[0] // <-- changing
         console.log(`      useEffect 3: `, {authorData})
         console.log(`      useEffect 3: `, {fetchedPoems})
         console.log(`      useEffect 3: `, fetchedPoems?.['current']?.[author]?.[title])
