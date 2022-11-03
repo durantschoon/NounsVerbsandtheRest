@@ -32,31 +32,39 @@ function selector(selName, value, setter, valList) {
     )
 }
 
-function PoemSelector({author, authorDataUpdater, loadingProgress}) {
+function PoemSelector({authorData, authorDataUpdater, loadingProgress}) {
 
     function authorSelector() {
-        console.log(`authorSelector args name = "${author.name}" list =`, author.authorNames)
+        console.log(`authorSelector args name = "${authorData.name}" list =`,
+                    authorData.authorNames)
         function setAuthorName(name) {
-            authorDataUpdater(() => { aDataClone.name = name})
+            authorDataUpdater((aDataClone) => { aDataClone.name = name})
         }
         return selector('author', author.name, setAuthorName, author.authorNames)
     }
 
     function titleSelector() {
-        console.log(`titleSelector args title = "${author.currentTitle}" list =`, author.titles)
+        console.log(
+            `titleSelector args title = "${authorData.currentPoem.title}" list =`,
+            authorData.titles)
         function setTitle(title) {
-            authorDataUpdater(() => { aDataClone.currentTitle = title})
+            authorDataUpdater((aDataClone) => { aDataClone.currentPoem.title = title})
         }
-        return selector('title', author.currentTitle, setTitle, author.titles)
+        return selector('title', author.currentPoem.title, setTitle, author.titles)
     }
 
-    const lines = author.currentLines ? author.currentLines.join("\n") : ""
+    console.log({authorData})
+    console.log("authorData.currentPoem", authorData.currentPoem)
+    const lines = authorData.currentPoem.lines ?
+          authorData.currentPoem.lines.join("\n") : ""
+
+    const aD = authorData
 
     return (
         <>
           <h1> Select a poem </h1>
-          { author && author.name && author.authorNameList && authorSelector() }
-          { author && author.currentTitle && author.titleList && titleSelector() }
+          { aD && aD.name && aD.authorNames && authorSelector() }
+          { aD && aD.currentPoem?.title && aD.titles && titleSelector() }
           { loadingProgress.percentage > 0 &&
             loadingProgress.percentage < 100 &&
             <AuthorProgress {...loadingProgress}/>  }

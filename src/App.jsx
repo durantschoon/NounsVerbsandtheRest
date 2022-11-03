@@ -9,7 +9,7 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 // import MenuIcon from '@mui/icons-material/Menu';
 
 import './App.css'
-import InputText from './components/InputText'
+import PoemView from './components/PoemView'
 
 const theme = createTheme({
     palette: {
@@ -45,7 +45,7 @@ export default function App() {
           </Toolbar>
         </AppBar>
         <Box sx={{ flexGrow: 1 }}>
-          <InputText />
+          <PoemView />
         </Box>
       </Box>
     </ThemeProvider>

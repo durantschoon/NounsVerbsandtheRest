@@ -1,9 +1,18 @@
-import React from 'react'
+import React, {useEffect} from 'react'
+
+import FormControlLabel from '@mui/material/FormControlLabel';
+import FormControl from '@mui/material/FormControl';
+import FormLabel from '@mui/material/FormLabel';
+import InputLabel from '@mui/material/InputLabel';
+import Radio from '@mui/material/Radio';
+import RadioGroup from '@mui/material/RadioGroup';
+
+import ParserDescriptions from './ParserDescriptions'
+import {parsers, defaultParser} from '../dataClasses/Parser'
 
 function ParserChallenger({authorData, authorDataUpdater, parser}) {
 
-    // access and mutate aDataClone from calling scope authorDataUpdater
-    function _drawNounOutlines() {
+    function _drawNounOutlines(aDataClone) {
         document.getElementById("text-output").innerHTML = aDataClone.getTaggedWordsHTML()
         stats = {
             falsePos: document.getElementsByClassName("non-noun inverted").length,
@@ -14,15 +23,16 @@ function ParserChallenger({authorData, authorDataUpdater, parser}) {
     }
     const drawNounOutlinesUpdater = () => authorDataUpdater(_drawNounOutlines)
 
-    // access and mutate aDataClone from calling scope authorDataUpdater
-    function _invertNoun(line, word) {
-        aDataClone.getNounInverter().flip(line, word)
-        _drawNounOutlines() // still modifying the same aDataClone
+    function _invertNoun(aDataClone, line, word) {
+        aDataClone.getNounInverter().flip(aDataClone, line, word)
+        _drawNounOutlines(aDataClone)
     }
-    const invertNounUpdater = (line, word) => authorDataUpdater(_invertNoun, [line, word])
+    const invertNounUpdater =
+          (line, word) => authorDataUpdater(_invertNoun, [line, word])
 
     // changing the poem (lines) or parser will trigger redrawing of noun outlines
-    useEffect(drawNounOutlinesUpdater, [authorData.currentLines, authorData.currentParser])
+    useEffect(drawNounOutlinesUpdater,
+              [authorData.currentPoem?.lines, authorData.currentParser])
 
     // clicking on a word should also trigger redrawing of noun outlines
     function addClickHandlersToSpans() {
@@ -40,8 +50,13 @@ function ParserChallenger({authorData, authorDataUpdater, parser}) {
     }
 
     function handleParserChange(event) {
-        authorDataUpdater(() => { aDataClone.currentParser = event.target.value })
+        authorDataUpdater((aDataClone) => {
+            aDataClone.currentParser = event.target.value
+        })
     }
+
+    const falsePositiveCount = parser.nounInverter.falsePositiveCount
+    const falseNegativeCount = parser.nounInverter.falseNegativeCount
 
     return (
         <>
@@ -53,9 +68,9 @@ function ParserChallenger({authorData, authorDataUpdater, parser}) {
               <RadioGroup
                 row
                 aria-labelledby="parsers-radio-buttons-group-label"
-                defaultValue={defaultParserName}
+                defaultValue={defaultParser.name}
                 name="parserName"
-                value={parserName}
+                value={defaultParser.name}
                 onChange={handleParserChange}
               >
                 <FormControlLabel value="parts-of-speech" control={<Radio />} label="Parts-of-Speech" />
@@ -70,12 +85,12 @@ function ParserChallenger({authorData, authorDataUpdater, parser}) {
           </ul>
           <div id="text-output"></div>
           <fieldset id="stats-fieldset">
-            <legend id="stats-legend"><b><i>Statistics for {parserName}</i></b></legend>
+            <legend id="stats-legend"><b><i>Statistics for {parser.name}</i></b></legend>
             <div>
-              <span><b>False Positives:</b> {falsePositiveCount[parserName]}  </span>
-              <span><b>False Negatives:</b> {falseNegativeCount[parserName]}</span> 
+              <span><b>False Positives:</b> {falsePositiveCount}  </span>
+              <span><b>False Negatives:</b> {falseNegativeCount}</span> 
             </div>
-            <b>Total Incorrect:</b> {falsePositiveCount[parserName] + falseNegativeCount[parserName]}
+            <b>Total Incorrect:</b> {falsePositiveCount + falseNegativeCount}
           </fieldset>
         </>
     )

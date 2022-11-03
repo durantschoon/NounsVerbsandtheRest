@@ -1,6 +1,6 @@
 import {useMemo} from 'react';
 
-import {NounInverterMap} from './NounInverter'
+import {NounInverter, NounInverterMap} from './NounInverter'
 
 const spannedWord = (mainClass, extraClasses, lineNum, wordNum) => (
     `<span class="${mainClass} ${extraClasses}" id="word_${lineNum}_${wordNum}">
@@ -28,7 +28,7 @@ const addNounSpans = (tagged, lineNum) => {
 
 const requiredKeys = "name titles authorNames currentPoem currentParser".split(' ')
 
-class AuthorData {
+export default class AuthorData {
     /* data should include these fields pertaining to an author:
 
       name
@@ -43,6 +43,9 @@ class AuthorData {
       */
     constuctor(data) {
         Object.assign(this, data)
+
+        console.log("this.currentPoem =", this.currentPoem)
+
         for (const key of requiredKeys)
             if ( ! key in this )
                 console.warn(`AuthorData constructed without required key ${key}`)
@@ -54,29 +57,36 @@ class AuthorData {
     // authorData.getNounInverter()
     initNounInverter() {
         if (this.currentParser && this.currentPoem) {
-            this.nounInverters = useMemo( ({
-                [this.currentParser.name]: parser,
-                [this.currentPoem.author]: author,
-                [this.currentPoem.title]: title,
-                [this.currentPoem.lines]: lines,
-            }) => new NounInverterMap(parser, author, title, new NounInverter(lines)))
+            this.nounInverters = useMemo( (
+                parserName = this.currentParser.name,
+                authorName = this.currentPoem.author,
+                poemTitle = this.currentPoem.title,
+                lines = this.currentPoem.lines
+            ) => new NounInverterMap({
+                parserName, authorName, poemTitle,
+                nounInverter: new NounInverter(lines)
+            }))
         }
     }
 
     getNounInverter() {
-        return this.nounInverters.getCurrent()
+        return this.nounInverters?.getCurrent()
     }
 
-    /* FIXME stopped here, working on this
-      Return the HTML of all the words tagged (as either noun or non-noun)
+    /* Return the HTML of all the words tagged (as either noun or non-noun)
 
-      Should only be run in the scope of AuthorDataUpdater to reference aDataClone
+      Should only be run as a self-modifying clone (i.e. called by
+      authorDataUpdater)
       */
     getTaggedWordsHTML() {
+        const lines = this.currentPoem?.lines
 
+        if (! lines) {
+            return ""
+        }
         let outlined = []
 
-        let newNounInverter = aDataclone.getNounInverter()
+        let newNounInverter = this.getNounInverter()
         let parser = this.currentParser
 
         console.log({newNounInverter})
@@ -90,7 +100,6 @@ class AuthorData {
           - Recombine the spaces and words in the right order, save as outlined
           */
 
-        const lines = this.currentPoem.lines
         console.log("lines", lines)
         lines.forEach( (line, lineNum) => {
             if (line === '') {
@@ -123,6 +132,7 @@ class AuthorData {
             const recombined = R.unnest(R.zip(first, second)).join('')
             outlined.push(recombined)
         })
+        return outlined.join('<br>')
     }
 
     updateCurrentStats({falsePos, falseNeg}) {

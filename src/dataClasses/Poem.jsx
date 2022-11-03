@@ -1,10 +1,10 @@
 import sonnets, {
-    defaultAuthorName,
-    defaultTitle,
-    defaultTextLines,
+    defaultAuthorName as dAuthorName,
+    defaultTitle as dTitle,
+    defaultTextLines as dLines,
 } from '../data/sonnets'
 
-class Poem {
+export default class Poem {
     constructor(author, title, lines) {
         this.author = author
         this.title = title
@@ -12,6 +12,4 @@ class Poem {
     }
 }
 
-export const defaultPoem = Poem(defaultAuthorName, defaultTitle, defaultTextLines)
-
-export default Poem
+export const defaultPoem = new Poem(dAuthorName, dTitle, dLines)

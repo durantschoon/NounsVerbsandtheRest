@@ -48,10 +48,10 @@ class EnPos extends Parser {
     }
 }
 
-const PoS = PartsOfSpeech()
-const EnP = EnPos()
+const PoS = new PartsOfSpeech()
+const EnP = new EnPos()
 
 const parsers = [PoS, EnP]
-const defaultParser = Parsers[0]
+const defaultParser = parsers[0]
 
 export {parsers, defaultParser, PoS, EnP}

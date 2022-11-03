@@ -79,7 +79,7 @@ for (const [sAuthor, sonnetsByAuthor] of Object.entries(sonnets)) {
 export const defaultAuthorName = authorName
 export const defaultAuthorNames = authorNames
 export const defaultTitle = title
-export const defaultTitleList = titles
+export const defaultTitles = titles
 export const defaultTitlesByAuthor = titlesByAuthor
 export const defaultTextLines = textLines
 

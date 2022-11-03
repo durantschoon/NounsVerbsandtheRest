@@ -3,27 +3,24 @@ import {useState, useEffect} from 'react'
 import * as R from 'ramda'
 
 import { Grid } from '@mui/material';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import FormControl from '@mui/material/FormControl';
-import FormLabel from '@mui/material/FormLabel';
-import InputLabel from '@mui/material/InputLabel';
-import Radio from '@mui/material/Radio';
-import RadioGroup from '@mui/material/RadioGroup';
 import useMediaQuery from '@mui/material/useMediaQuery';
 
-import "./InputText.css";
+import "./PoemView.css";
 
+import AuthorData from '../dataClasses/AuthorData'
 import NounInverter, {NounInverterMap} from '../dataClasses/NounInverter'
 import PoemSelector from './PoemSelector'
-import ParserDescriptions from './ParserDescriptions'
+import ParserChallenger from './ParserChallenger'
 import {parsers, defaultParser} from '../dataClasses/Parser'
-import {Poem, defaultPoem} from '../dataClasses/Poem'
+import Poem, {defaultPoem} from '../dataClasses/Poem'
 import SnackbarAlerts from './SnackbarAlerts'
-import sonnets as fetchedPoems, {
+import sonnets, {
+    defaultAuthorName,
     defaultAuthorNames,
     defaultTitles,
     defaultTitlesByAuthor } from '../data/sonnets'
 
+let fetchedPoems = sonnets
 let titlesByAuthor = R.clone(defaultTitlesByAuthor)
 
 // debug
@@ -31,14 +28,19 @@ let titlesByAuthor = R.clone(defaultTitlesByAuthor)
 // const poetryURLs = ['http://fetch-should-fail.com', 'http://165.227.95.56:3000']
 const poetryURLs = []
 
-function InputText(props) {
+function PoemView(props) {
     const [parser, setParser] = useState(defaultParser)
     const [authorData, setAuthorData] = useState(new AuthorData({
         name: defaultAuthorName,
         titles: defaultTitles,
         authorNames: defaultAuthorNames,
         currentPoem: defaultPoem,
-        currentParser: defaultParser)})
+        currentParser: defaultParser,
+    }))
+
+    console.log("defaultPoem =", defaultPoem)
+    console.log("authorData.currentPoem =", authorData.currentPoem)
+
     const [toast, setToast] = useState({open: false, severity: "info", message: ""})
     const [loadingProgress, setLoadingProgress] = useState({authorName: "", percentage: 0})
 
@@ -50,57 +52,22 @@ function InputText(props) {
 
     /* Update approach:
       - Clones current authorData
-      - calls func with args, intending func to access and modify aDataClone by name in scope
+      - calls func with the clone and args which is expected to modify the clone
       - sets the new author data to the modified clone
 
       See the pattern below where method names ending in "Updater", wrap a function with
       authorDataUpdater.
      */
     function authorDataUpdater(func, args) {
-        let aDataClone = R.clone(authorData) // deep copy
-        func(...args)
+        var aDataClone = R.clone(authorData) // deep copy
+        func(aDataClone, ...(args ?? []))
         setAuthorData(aDataClone)
     }
 
-    // access and mutate aDataClone from calling scope authorDataUpdater
-    function _drawNounOutlines() {
-        document.getElementById("text-output").innerHTML = aDataClone.getTaggedWordsHTML()
-        stats = {
-            falsePos: document.getElementsByClassName("non-noun inverted").length,
-            falseNeg: document.getElementsByClassName("non-noun inverted").length
-        }
-        aDataClone.updateCurrentStats(stats)
-        addClickHandlersToSpans()
-    }
-    const drawNounOutlinesUpdater = () => authorDataUpdater(_drawNounOutlines)
-
-    // access and mutate aDataClone from calling scope authorDataUpdater
-    function _invertNoun(line, word) {
-        aDataClone.getNounInverter().flip(line, word)
-        _drawNounOutlines() // still modifying the same aDataClone so call this directly
-    }
-    const invertNounUpdater = (line, word) => authorDataUpdater(_invertNoun, [line, word])
-
-    // changing the poem (lines) or parser will trigger redrawing of noun outlines
-    useEffect(drawNounOutlinesUpdater, [authorData.currentLines, authorData.currentParser])
-
-    // clicking on a word should also trigger redrawing of noun outlines
-    function addClickHandlersToSpans() {
-        const classNames = ['noun', 'non-noun']
-        for (let className of classNames) {
-            const spans = document.getElementsByClassName(className)
-            for (let span of spans) {
-                span.addEventListener('click', (event) => {
-                    event.stopPropagation()
-                    const [line, word] = event.target.id.split('_').slice(1)
-                    invertNounUpdater(parseInt(line, 10), parseInt(word, 10))
-                })
-            }
-        }
-    }
-
     function handleParserChange(event) {
-        authorDataUpdater(() => { aDataClone.currentParser = event.target.value })
+        authorDataUpdater((aDataClone) => {
+            aDataClone.currentParser = event.target.value
+        })
     }
 
     function toastAlert(message, severity) {
@@ -169,26 +136,30 @@ function InputText(props) {
     // When the title changes, update the lines
     useEffect( () => {
         const author = authorData.name
-        const title = authorData.currentPoem.title
+        const title = authorData.currentPoem?.title
         const lines = fetchedPoems[author][title] // <-- changing
-        authorDataUpdater(() => {aDataClone.currentPoem = new Poem(author, title, lines)})
-    }, [authorData.currentPoem.title] )
+        authorDataUpdater((aDataClone) => {
+            aDataClone.currentPoem = new Poem(author, title, lines)
+        })
+    }, [authorData?.currentPoem?.title] )
 
     // When the author name changes, set the current title to the first one fetched
     useEffect( () => {
         const author = authorData.name
         const title = titlesByAuthor[author][0]   // <-- changing
         const lines = fetchedPoems[author][title] // <-- changing
-        authorDataUpdater(() => {aDataClone.currentPoem = new Poem(author, title, lines)})
-    }, [authorData.name])
-
-    const poemSelectionCriteria = {authorData, setAuthorData, loadingProgress}
+        authorDataUpdater((aDataClone) => {
+            aDataClone.currentPoem = new Poem(author, title, lines)
+        })
+    }, [authorData?.name])
 
     return (
         <section>
           <Grid container spacing={2} direction={extraLargeScreen?"row":"column"}>
             <Grid item xs={6}>
-              <PoemSelector {...poemSelectionCriteria} />
+              { authorData?.currentPoem && 
+                <PoemSelector {...{authorData, setAuthorData, loadingProgress}} />
+              }
             </Grid>
             <Grid item xs={6}>
               <ParserChallenger {...{authorData, authorDataUpdater, parser}}/>
@@ -199,4 +170,4 @@ function InputText(props) {
     )
 }
 
-export default InputText;
+export default PoemView;

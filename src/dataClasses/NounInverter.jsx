@@ -1,5 +1,5 @@
 // for a specific poem (lines of text)
-class NounInverter {
+export class NounInverter {
     constuctor(poemTextLines) {
         this.falsePositiveCount = 0
         this.falseNegativeCount = 0
@@ -20,7 +20,7 @@ class NounInverter {
         this.rep[line-1][word-1] = isInverted
     }
     flip(line, word) {
-        this.set(line, word) = ! this.get(line, word)
+        this.set(line, word, ! this.get(line, word))
     }
     initLineIfNeeded(lineNum, lineLength) {
         if (this.rep[lineNum].length === 0) {
@@ -42,7 +42,7 @@ class NounInverter {
   poem and nounInverter. So don't worry too much about NounInverterMap.current
   being null.
   */
-class NounInverterMap {
+export class NounInverterMap {
     constructor(parserName=null, authorName=null, poemTitle=null, nounInverter=null) {
         this.current = nounInverter // might be null
         this.set(parserName, authorName, poemTitle, nounInverter)
@@ -68,7 +68,5 @@ class NounInverterMap {
     // return current NounInverter
     getCurrent() { return this.current }
 }
-
-export NounInverterMap
 
 export default NounInverter
