@@ -54,4 +54,10 @@ const EnP = new EnPos()
 const parsers = [PoS, EnP]
 const defaultParser = parsers[0]
 
-export {parsers, defaultParser, PoS, EnP}
+let byName = {}
+for (let parser of parsers) {
+    byName[parser.name] = parser
+}
+const parsersByName = Object.freeze(byName)
+
+export {parsers, defaultParser, parsersByName, PoS, EnP}

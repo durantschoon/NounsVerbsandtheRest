@@ -7,13 +7,14 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 
 import "./PoemView.css";
 
-import AuthorData, {defaultAuthorData} from '../dataClasses/AuthorData'
-import NounInverter, {NounInverterMap} from '../dataClasses/NounInverter'
 import PoemSelector from './PoemSelector'
 import ParserChallenger from './ParserChallenger'
+import SnackbarAlerts from './SnackbarAlerts'
+
+import AuthorData, {defaultAuthorData} from '../dataClasses/AuthorData'
+import NounInverter, {NounInverterMap} from '../dataClasses/NounInverter'
 import {parsers, defaultParser} from '../dataClasses/Parser'
 import Poem from '../dataClasses/Poem'
-import SnackbarAlerts from './SnackbarAlerts'
 import sonnets, {
     defaultAuthorNames,
     defaultTitlesByAuthor} from '../data/sonnets'
@@ -62,7 +63,7 @@ function PoemView(props) {
 
     function handleParserChange(event) {
         authorDataUpdater((aDataClone) => {
-            aDataClone.currentParser = event.target.value
+            aDataClone.currentParser = parsersByName[event.target.value]
         })
     }
 

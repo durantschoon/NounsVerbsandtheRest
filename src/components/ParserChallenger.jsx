@@ -51,7 +51,7 @@ function ParserChallenger({authorData, authorDataUpdater, parser}) {
 
     function handleParserChange(event) {
         authorDataUpdater((aDataClone) => {
-            aDataClone.currentParser = event.target.value
+            aDataClone.currentParser = parsersByName[event.target.value]
         })
     }
 
