@@ -35,26 +35,22 @@ function selector(selName, value, setter, valList) {
 function PoemSelector({authorData, authorDataUpdater, loadingProgress}) {
 
     function authorSelector() {
-        console.log(`authorSelector args name = "${authorData.name}" list =`,
-                    authorData.authorNames)
         function setAuthorName(name) {
             authorDataUpdater((aDataClone) => { aDataClone.name = name})
         }
-        return selector('author', author.name, setAuthorName, author.authorNames)
+        const {name, authorNames} = authorData
+        return selector('author', name, setAuthorName, authorNames)
     }
 
     function titleSelector() {
-        console.log(
-            `titleSelector args title = "${authorData.currentPoem.title}" list =`,
-            authorData.titles)
         function setTitle(title) {
             authorDataUpdater((aDataClone) => { aDataClone.currentPoem.title = title})
         }
-        return selector('title', author.currentPoem.title, setTitle, author.titles)
+        const title = authorData.currentPoem.title
+        const titles = authorData.titles
+        return selector('title', title, setTitle, titles)
     }
 
-    console.log({authorData})
-    console.log("authorData.currentPoem", authorData.currentPoem)
     const lines = authorData.currentPoem.lines ?
           authorData.currentPoem.lines.join("\n") : ""
 

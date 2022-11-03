@@ -1,4 +1,4 @@
-import {useMemo} from 'react';
+import * as R from 'ramda'
 
 import {NounInverter, NounInverterMap} from './NounInverter'
 import {defaultParser} from '../dataClasses/Parser'
@@ -11,29 +11,15 @@ import {
     defaultTitlesByAuthor } from '../data/sonnets'
 
 
-const spannedWord = (mainClass, extraClasses, lineNum, wordNum) => (
+const spannedWord = (mainClass, extraClasses, lineNum, wordNum, word) => (
     `<span class="${mainClass} ${extraClasses}" id="word_${lineNum}_${wordNum}">
        ${word}
      </span>`
 )
 
-// returns HTML
-const addNounSpans = (tagged, lineNum) => {
-    const nounInverter = authorData.getNounInverter()
-    let mainClass
-    let extraClasses
-    let wordNum = 0
-    return tagged.map( ([word, tag]) => {
-        extraClasses = ""
-        let nounTest = (tag === 'NN' || tag === 'NNS')
-        if (nounInverter.get(lineNum, wordNum)) {
-            nounTest = !nounTest
-            extraClasses = "inverted"
-        }
-        mainClass = nounTest ? "noun" : "non-noun"
-        return spannedWord(mainClass, extraClasses, lineNum, wordNum++)
-    })
-}
+const punct = /([.,\/#!$%\^&\*;:{}=\-_`~()]+)/gm
+const spacePunct = /([\s.,\/#!$%\^&\*;:{}=\-_`~()]+)/gm
+const UNICODE_NBSP = "\u00A0"
 
 const requiredKeys = "name titles authorNames currentPoem currentParser".split(' ')
 
@@ -51,9 +37,7 @@ export default class AuthorData {
 
       */
     constructor(data) {
-        console.log("--> AuthorData constuctor data =", data)
         Object.assign(this, data)
-        console.log("this.currentPoem =", this.currentPoem)
 
         for (const key of requiredKeys)
             if ( ! key in this )
@@ -66,20 +50,21 @@ export default class AuthorData {
     // authorData.getNounInverter()
     initNounInverter() {
         if (this.currentParser && this.currentPoem) {
-            this.nounInverters = useMemo( (
-                parserName = this.currentParser.name,
-                authorName = this.currentPoem.author,
-                poemTitle = this.currentPoem.title,
-                lines = this.currentPoem.lines
-            ) => new NounInverterMap({
-                parserName, authorName, poemTitle,
-                nounInverter: new NounInverter(lines)
-            }))
+            const memoizedGetNounInverters = R.memoizeWith(Object, () => {
+                return new NounInverterMap(
+                    this.currentParser.name,
+                    this.currentPoem.author,
+                    this.currentPoem.title,
+                    new NounInverter(this.currentPoem.lines)
+                )})
+            this.nounInverters = memoizedGetNounInverters()
+        } else {
+            this.nounInverters = null
         }
     }
 
     getNounInverter() {
-        return this.nounInverters?.getCurrent()
+        return this.nounInverters ? this.nounInverters.getCurrent() : null
     }
 
     /* Return the HTML of all the words tagged (as either noun or non-noun)
@@ -98,7 +83,22 @@ export default class AuthorData {
         let newNounInverter = this.getNounInverter()
         let parser = this.currentParser
 
-        console.log({newNounInverter})
+        // returns HTML, uses newNounInverter in surrounding scope
+        const addNounSpans = (tagged, lineNum) => {
+            let mainClass
+            let extraClasses
+            let wordNum = 0
+            return tagged.map( ([word, tag]) => {
+                extraClasses = ""
+                let nounTest = (tag === 'NN' || tag === 'NNS')
+                if (newNounInverter.get(lineNum, wordNum)) {
+                    nounTest = !nounTest
+                    extraClasses = "inverted"
+                }
+                mainClass = nounTest ? "noun" : "non-noun"
+                return spannedWord(mainClass, extraClasses, lineNum, wordNum++, word)
+            })
+        }
 
         /* Algorithm
           - match the spaces and punctuation, save that as matchedSpacePunct
@@ -109,8 +109,9 @@ export default class AuthorData {
           - Recombine the spaces and words in the right order, save as outlined
           */
 
-        console.log("lines", lines)
-        lines.forEach( (line, lineNum) => {
+        lines.forEach( (line, index) => {
+            let lineNum = index+1
+
             if (line === '') {
                 outlined.push('')
                 return

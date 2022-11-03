@@ -1,6 +1,6 @@
 // for a specific poem (lines of text)
 export class NounInverter {
-    constuctor(poemTextLines) {
+    constructor(poemTextLines) {
         this.falsePositiveCount = 0
         this.falseNegativeCount = 0
         // nounInverters are represented by jagged arrays of arrays indexed by
@@ -11,7 +11,7 @@ export class NounInverter {
         //      at line 3, word 7 has been inverted by the user
         //    i.e. inverted means now should be considered not-a-noun if originally
         //      a noun or vice-versa
-        this.rep =  new Array(poemTextLines.length).fill([])
+        this.rep = poemTextLines ? new Array(poemTextLines.length).fill([]) : []
     }
     get(line, word) {
         return this.rep[line-1][word-1]
@@ -23,8 +23,8 @@ export class NounInverter {
         this.set(line, word, ! this.get(line, word))
     }
     initLineIfNeeded(lineNum, lineLength) {
-        if (this.rep[lineNum].length === 0) {
-            this.rep[lineNum] = new Array(lineLength).fill(false)
+        if (this.rep[lineNum-1].length === 0) {
+            this.rep[lineNum-1] = new Array(lineLength).fill(false)
         }
     }
 }
@@ -43,7 +43,7 @@ export class NounInverter {
   being null.
   */
 export class NounInverterMap {
-    constructor(parserName=null, authorName=null, poemTitle=null, nounInverter=null) {
+    constructor(parserName, authorName, poemTitle, nounInverter=null) {
         this.current = nounInverter // might be null
         this.set(parserName, authorName, poemTitle, nounInverter)
     }
@@ -60,7 +60,7 @@ export class NounInverterMap {
     set(parserName, authorName, poemTitle, nounInverter) {
         if (nounInverter) {
             this._initKey(parserName, authorName, poemTitle)
-            this.parsers[parserName][authorName][poemTitle] = nounInverter
+            this.rep[parserName][authorName][poemTitle] = nounInverter
             this.current = nounInverter
         }
     }
