@@ -72,17 +72,6 @@ function PoemView(props) {
     */
   function authorDataUpdater(func, args) {
     var aDataClone = R.clone(authorData); // deep copy
-    // this is a fix for a currently unexplained phenomenon
-    if (!("getTaggedWordsHTML" in aDataClone)) {
-      let data = {
-        name: aDataClone.name,
-        titles: aDataClone.titles,
-        authorNames: aDataClone.authorNames,
-        currentPoem: aDataClone.currentPoem,
-        currentParser: aDataClone.currentParser,
-      };
-      aDataClone = new AuthorData(data);
-    }
     func(aDataClone, ...(args ?? []));
     setAuthorData(aDataClone);
   }
@@ -125,13 +114,15 @@ function PoemView(props) {
     // infinite loop still occurs when this whole block is commented out
 
     if (fetchedPoems["current"] !== fetchedPoems["default"]) {
-      setAuthorData({
-        name: author,
-        titles: titles,
-        authorNames: authorNames["current"],
-        currentPoem,
-        currentParser: parser,
-      });
+      setAuthorData(
+        new AuthorData({
+          name: author,
+          titles: titles,
+          authorNames: authorNames["current"],
+          currentPoem,
+          currentParser: parser,
+        })
+      );
     }
   }
 
