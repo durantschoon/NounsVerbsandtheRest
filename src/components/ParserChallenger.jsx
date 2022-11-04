@@ -8,7 +8,7 @@ import Radio from "@mui/material/Radio";
 import RadioGroup from "@mui/material/RadioGroup";
 
 import ParserDescriptions from "./ParserDescriptions";
-import { parsers, defaultParser } from "../dataClasses/Parser";
+import { parsers, parsersByName, defaultParser } from "../dataClasses/Parser";
 
 function ParserChallenger({ authorData, authorDataUpdater, parser }) {
   function _drawNounOutlines(aDataClone) {

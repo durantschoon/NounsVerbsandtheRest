@@ -13,7 +13,7 @@ import SnackbarAlerts from "./SnackbarAlerts";
 
 import AuthorData, { defaultAuthorData } from "../dataClasses/AuthorData";
 import NounInverter, { NounInverterMap } from "../dataClasses/NounInverter";
-import { parsers, defaultParser } from "../dataClasses/Parser";
+import { parsers, parsersByName, defaultParser } from "../dataClasses/Parser";
 import Poem from "../dataClasses/Poem";
 import sonnets, {
   defaultAuthorNames,
@@ -33,10 +33,14 @@ let titlesByAuthor = {
   current: titlesByAuthorClone,
 };
 
+// order poetry urls best to worst (highest priority first)
 // debug
 // const poetryURLs = ['https://poetrydb.org', 'http://165.227.95.56:3000']
-// const poetryURLs = ['http://fetch-should-fail.com', 'http://165.227.95.56:3000']
-const poetryURLs = [];
+const poetryURLs = [
+  "http://fetch-should-fail.com",
+  "http://165.227.95.56:3000",
+];
+/// const poetryURLs = [];
 
 function PoemView(props) {
   const [parser, setParser] = useState(defaultParser);
@@ -68,6 +72,17 @@ function PoemView(props) {
     */
   function authorDataUpdater(func, args) {
     var aDataClone = R.clone(authorData); // deep copy
+    // this is a fix for a currently unexplained phenomenon
+    if (!("getTaggedWordsHTML" in aDataClone)) {
+      let data = {
+        name: aDataClone.name,
+        titles: aDataClone.titles,
+        authorNames: aDataClone.authorNames,
+        currentPoem: aDataClone.currentPoem,
+        currentParser: aDataClone.currentParser,
+      };
+      aDataClone = new AuthorData(data);
+    }
     func(aDataClone, ...(args ?? []));
     setAuthorData(aDataClone);
   }
@@ -88,7 +103,7 @@ function PoemView(props) {
     */
   function setHighestRankFetchedPoem() {
     for (let url of poetryURLs) {
-      if (Object.keys(fetchedPoems[url]).length > 0) {
+      if (fetchedPoems[url] && Object.keys(fetchedPoems[url]).length > 0) {
         fetchedPoems["current"] = fetchedPoems[url];
         authorNames["current"] = authorNames[url];
         titlesByAuthor["current"] = titlesByAuthor[url];
@@ -125,7 +140,7 @@ function PoemView(props) {
       const authorURL = url + "/author";
       let response = await fetch(authorURL);
       const authorJSON = await response.json();
-      const numAuthors = authorNames.length;
+      const numAuthors = authorNames["current"].length;
       let countAuthors = 0;
 
       authorNames[url] = authorJSON.authors;
@@ -146,8 +161,16 @@ function PoemView(props) {
         response = await fetch(poemsByAuthorURL);
         let fetchedPoemsInitial = await response.json();
 
-        titlesByAuthor[url][authorName] = [];
-        fetchedPoems[url] = { authorName: {} };
+        if (titlesByAuthor[url]) {
+          titlesByAuthor[url][authorName] = [];
+        } else {
+          titlesByAuthor[url] = { [authorName]: [] };
+        }
+        if (fetchedPoems[url]) {
+          fetchedPoems[url][authorName] = {};
+        } else {
+          fetchedPoems[url] = { [authorName]: {} };
+        }
         for (let poem of fetchedPoemsInitial) {
           titlesByAuthor[url][authorName].push(poem.title);
           fetchedPoems[url][authorName][poem.title] = poem.lines;
@@ -155,12 +178,11 @@ function PoemView(props) {
       }
     }
     const fetchedPromises = poetryURLs.map((url) => {
-      fetchPoems(url).catch((error) =>
+      return fetchPoems(url).catch((error) =>
         toastAlert(`${error.message}: ${url}`, "warning")
       );
     });
-    Promise.all(fetchedPromises);
-    setHighestRankFetchedPoem();
+    Promise.all(fetchedPromises).then(() => setHighestRankFetchedPoem());
   }, []);
 
   // When the title changes, update the lines
