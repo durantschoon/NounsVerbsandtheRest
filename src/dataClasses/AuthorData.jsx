@@ -22,6 +22,23 @@ const requiredKeys = "name titles authorNames currentPoem currentParser".split(
   " "
 );
 
+let memoCache = new Map();
+
+function memoize(func) {
+  return (...args) => {
+    const joinedArgs = args.join("--");
+    console.log({ joinedArgs });
+    console.log({ memoCache });
+    if (!memoCache.has(joinedArgs)) {
+      console.log("  COMPUTING func!");
+      memoCache.set(joinedArgs, func(...args));
+    } else {
+      console.log("  NOT computing func!");
+    }
+    return memoCache.get(joinedArgs);
+  };
+}
+
 export default class AuthorData {
   /* data should include these fields pertaining to an author:
 
@@ -59,15 +76,21 @@ export default class AuthorData {
       poem = this.currentPoem;
     }
     if (this.currentParser && this.currentPoem) {
-      const memoizedGetNounInverters = R.memoizeWith(Object, () => {
+      const memoizedGetNounInverters = memoize((parserName, author, title) => {
+        console.log(`Creating new NounInverter for "${poem.title}"`);
+        console.log(`  args: '${parserName}', '${author}', '${title}'`);
         return new NounInverterMap(
-          this.currentParser.name,
-          poem.author,
-          poem.title,
+          parserName,
+          author,
+          title,
           new NounInverter(poem.lines)
         );
       });
-      this.nounInverters = memoizedGetNounInverters();
+      this.nounInverters = memoizedGetNounInverters(
+        this.currentParser.name,
+        poem.author,
+        poem.title
+      );
     } else {
       this.nounInverters = null;
     }
@@ -111,6 +134,7 @@ export default class AuthorData {
       return tagged.map(([word, tag]) => {
         extraClasses = "";
         let nounTest = tag === "NN" || tag === "NNS";
+        // if (lineNum == 4 && wordNum == 2) debugger;
         if (newNounInverter.isInverted(lineNum, wordNum)) {
           nounTest = !nounTest;
           extraClasses = "inverted";

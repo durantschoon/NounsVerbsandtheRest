@@ -12,14 +12,15 @@ export class NounInverter {
     //    i.e. inverted means now should be considered not-a-noun if originally
     //      a noun or vice-versa
     this.rep = poemTextLines ? new Array(poemTextLines.length).fill([]) : [[]];
+    console.log("NounInverter constructed");
   }
   // line, word are 1-based
   isInverted(line, word) {
     return this.rep[line - 1][word - 1];
   }
   // line, word are 1-based
-  setInverted(line, word, isInverted) {
-    this.rep[line - 1][word - 1] = isInverted;
+  setInverted(line, word, wordIsInverted) {
+    this.rep[line - 1][word - 1] = wordIsInverted;
   }
   // line, word are 1-based
   flip(line, word) {
@@ -30,6 +31,7 @@ export class NounInverter {
     if (this.rep.length === 0) return;
     if (this.rep[lineNum - 1].length === 0) {
       this.rep[lineNum - 1] = new Array(lineLength).fill(false);
+      console.log(`  initialized line`, lineNum);
     }
   }
 }
