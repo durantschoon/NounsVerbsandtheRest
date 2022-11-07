@@ -16,6 +16,9 @@ export class NounInverter {
   get(line, word) {
     return this.rep[line - 1][word - 1];
   }
+  isInverted(line, word) {
+    return this.get(line, word);
+  }
   set(line, word, isInverted) {
     this.rep[line - 1][word - 1] = isInverted;
   }
@@ -42,7 +45,7 @@ export class NounInverter {
   New practice: the AuthorData should always have a populated current parser,
   poem and nounInverter. So don't worry too much about NounInverterMap.current
   being null.
-  */
+*/
 export class NounInverterMap {
   constructor(parserName, authorName, poemTitle, nounInverter = null) {
     this.current = nounInverter; // might be null

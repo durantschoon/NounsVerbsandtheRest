@@ -12,9 +12,7 @@ import {
 } from "../data/sonnets";
 
 const spannedWord = (mainClass, extraClasses, lineNum, wordNum, word) =>
-  `<span class="${mainClass} ${extraClasses}" id="word_${lineNum}_${wordNum}">
-       ${word}
-     </span>`;
+  `<span class="${mainClass} ${extraClasses}" id="word_${lineNum}_${wordNum}">${word}</span>`;
 
 const punct = /([.,\/#!$%\^&\*;:{}=\-_`~()]+)/gm;
 const spacePunct = /([\s.,\/#!$%\^&\*;:{}=\-_`~()]+)/gm;
@@ -113,7 +111,7 @@ export default class AuthorData {
       return tagged.map(([word, tag]) => {
         extraClasses = "";
         let nounTest = tag === "NN" || tag === "NNS";
-        if (newNounInverter.get(lineNum, wordNum)) {
+        if (newNounInverter.isInverted(lineNum, wordNum)) {
           nounTest = !nounTest;
           extraClasses = "inverted";
         }
@@ -123,13 +121,13 @@ export default class AuthorData {
     };
 
     /* Algorithm
-          - match the spaces and punctuation, save that as matchedSpacePunct
-          - remove all the punctuation from the words and tag, saving in as
-            parser.tagWordsInLine
-          - Add the lines to the NounInverter
-          - Even out the saved punctuation and lines for recombination
-          - Recombine the spaces and words in the right order, save as outlined
-          */
+      - match the spaces and punctuation, save that as matchedSpacePunct
+      - remove all the punctuation from the words and tag, saving in as
+        parser.tagWordsInLine
+      - Use the word count of each line to initialize each line of the NounInverter
+      - Even out the saved punctuation and lines for recombination
+      - Recombine the spaces and words in the right order, save as outlined
+    */
     lines.forEach((line, index) => {
       let lineNum = index + 1;
 
