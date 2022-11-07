@@ -24,14 +24,12 @@ function ParserChallenger({ authorData, authorDataUpdater, parser }) {
   const drawNounOutlinesUpdater = () => authorDataUpdater(_drawNounOutlines);
 
   function _invertNoun(aDataClone, line, word) {
-    aDataClone.getNounInverter().flip(aDataClone, line, word);
+    aDataClone.getNounInverter().flip(line, word);
     _drawNounOutlines(aDataClone);
   }
   const invertNounUpdater = (line, word) =>
     authorDataUpdater(_invertNoun, [line, word]);
-
   // changing the poem (lines) or parser will trigger redrawing of noun outlines
-
   useEffect(drawNounOutlinesUpdater, [
     authorData.currentPoem.title,
     authorData.currentParser.name,
@@ -46,7 +44,7 @@ function ParserChallenger({ authorData, authorDataUpdater, parser }) {
         span.addEventListener("click", (event) => {
           event.stopPropagation();
           const [line, word] = event.target.id.split("_").slice(1);
-          invertNounUpdater(parseInt(line, 10), parseInt(word, 10));
+          invertNounUpdater(+line, +word);
         });
       }
     }
@@ -58,8 +56,8 @@ function ParserChallenger({ authorData, authorDataUpdater, parser }) {
     });
   }
 
-  const falsePositiveCount = parser.nounInverter.falsePositiveCount;
-  const falseNegativeCount = parser.nounInverter.falseNegativeCount;
+  const falsePositiveCount = authorData.getNounInverter().falsePositiveCount;
+  const falseNegativeCount = authorData.getNounInverter().falseNegativeCount;
 
   return (
     <>

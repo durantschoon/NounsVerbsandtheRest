@@ -106,7 +106,7 @@ export default class AuthorData {
     const addNounSpans = (tagged, lineNum) => {
       let mainClass;
       let extraClasses;
-      let wordNum = 0;
+      let wordNum = 1; // remember 1 based
 
       return tagged.map(([word, tag]) => {
         extraClasses = "";

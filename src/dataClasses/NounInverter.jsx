@@ -6,25 +6,26 @@ export class NounInverter {
     // nounInverters are represented by jagged arrays of arrays indexed by
     //    (line, word) internally represented as zero-based arrays
     //    but externally represented as one-based.
-    //    e.g. nounInverter.get(3,7) === true
+    //    e.g. nounInverter.isInverted(3,7) === true
     //      means that the noun-state assigned by the parser for the word
     //      at line 3, word 7 has been inverted by the user
     //    i.e. inverted means now should be considered not-a-noun if originally
     //      a noun or vice-versa
     this.rep = poemTextLines ? new Array(poemTextLines.length).fill([]) : [[]];
   }
-  get(line, word) {
+  // line, word are 1-based
+  isInverted(line, word) {
     return this.rep[line - 1][word - 1];
   }
-  isInverted(line, word) {
-    return this.get(line, word);
-  }
-  set(line, word, isInverted) {
+  // line, word are 1-based
+  setInverted(line, word, isInverted) {
     this.rep[line - 1][word - 1] = isInverted;
   }
+  // line, word are 1-based
   flip(line, word) {
-    this.set(line, word, !this.get(line, word));
+    this.setInverted(line, word, !this.isInverted(line, word));
   }
+  // lineNum is 1-based
   initLineIfNeeded(lineNum, lineLength) {
     if (this.rep.length === 0) return;
     if (this.rep[lineNum - 1].length === 0) {
