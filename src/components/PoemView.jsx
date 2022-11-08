@@ -71,7 +71,15 @@ function PoemView(props) {
       authorDataUpdater.
     */
   function authorDataUpdater(func, args) {
+    if (!authorData.cloneable) {
+      console.log(
+        "authorDataUpdater will NOT clone because authorData is not ready"
+      );
+      return;
+    }
     var aDataClone = R.clone(authorData); // deep copy
+    console.log("authorData has been cloned");
+    // debugger;
     func(aDataClone, ...(args ?? []));
     setAuthorData(aDataClone);
   }
@@ -127,6 +135,7 @@ function PoemView(props) {
   }
 
   useEffect(() => {
+    console.log("In initializing useEffect call");
     async function fetchPoems(url) {
       const authorURL = url + "/author";
       let response = await fetch(authorURL);
@@ -178,6 +187,7 @@ function PoemView(props) {
 
   // When the title changes, update the lines
   useEffect(() => {
+    console.log("In authorData.currentPoem.title useEffect call");
     const author = authorData.name;
     const title = authorData.currentPoem?.title;
     // needed?
@@ -192,6 +202,7 @@ function PoemView(props) {
 
   // When the author name changes, set the current title to the first one fetched
   useEffect(() => {
+    console.log("In authorData.name useEffect call");
     const author = authorData.name;
     const newTitle = titlesByAuthor["current"]?.[author]?.[0];
     // needed?

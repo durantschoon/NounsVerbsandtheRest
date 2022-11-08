@@ -24,7 +24,9 @@ function ParserChallenger({ authorData, authorDataUpdater, parser }) {
   const drawNounOutlinesUpdater = () => authorDataUpdater(_drawNounOutlines);
 
   function _invertNoun(aDataClone, line, word) {
+    console.log(`flipping line ${line} word ${word}`);
     aDataClone.getNounInverter().flip(line, word);
+    debugger;
     _drawNounOutlines(aDataClone);
   }
   const invertNounUpdater = (line, word) =>
@@ -44,6 +46,7 @@ function ParserChallenger({ authorData, authorDataUpdater, parser }) {
         span.addEventListener("click", (event) => {
           event.stopPropagation();
           const [line, word] = event.target.id.split("_").slice(1);
+          console.log(`clicking at line ${line} word ${word}`);
           invertNounUpdater(+line, +word);
         });
       }
@@ -58,6 +61,8 @@ function ParserChallenger({ authorData, authorDataUpdater, parser }) {
 
   const falsePositiveCount = authorData.getNounInverter().falsePositiveCount;
   const falseNegativeCount = authorData.getNounInverter().falseNegativeCount;
+
+  console.log("in ParserChallenger");
 
   return (
     <>

@@ -12,6 +12,7 @@ export class NounInverter {
     //    i.e. inverted means now should be considered not-a-noun if originally
     //      a noun or vice-versa
     this.rep = poemTextLines ? new Array(poemTextLines.length).fill([]) : [[]];
+    this._hasInitializedEveryLine = false;
     console.log("NounInverter constructed");
   }
   // line, word are 1-based
@@ -20,11 +21,16 @@ export class NounInverter {
   }
   // line, word are 1-based
   setInverted(line, word, wordIsInverted) {
+    console.log("setInverted", { line, word, wordIsInverted });
+    // debugger;
     this.rep[line - 1][word - 1] = wordIsInverted;
+    // debugger;
   }
   // line, word are 1-based
   flip(line, word) {
+    console.log("rep before:", this.rep);
     this.setInverted(line, word, !this.isInverted(line, word));
+    console.log("rep after:", this.rep);
   }
   // lineNum is 1-based
   initLineIfNeeded(lineNum, lineLength) {
@@ -32,7 +38,16 @@ export class NounInverter {
     if (this.rep[lineNum - 1].length === 0) {
       this.rep[lineNum - 1] = new Array(lineLength).fill(false);
       console.log(`  initialized line`, lineNum);
+      // if (lineNum == 6) debugger;
     }
+  }
+  get clonable() {
+    return this._hasInitializedEveryLine;
+  }
+  // this should only set to true by AuthorData after every line of this
+  // NounInverter has been initialized.
+  set clonable(hasBeenInitialized) {
+    this._hasInitializedEveryLine = hasBeenInitialized;
   }
 }
 

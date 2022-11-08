@@ -26,7 +26,7 @@ let memoCache = new Map();
 
 function memoize(func) {
   return (...args) => {
-    const joinedArgs = args.join("--");
+    const joinedArgs = args.join(" -- ");
     console.log({ joinedArgs });
     console.log({ memoCache });
     if (!memoCache.has(joinedArgs)) {
@@ -109,6 +109,10 @@ export default class AuthorData {
     return this.nounInverters ? this.nounInverters.getCurrent() : null;
   }
 
+  get clonable() {
+    return this.nounInverters?.getCurrent()?.cloneable;
+  }
+
   /* Return the HTML of all the words tagged (as either noun or non-noun)
 
       Should only be run as a self-modifying clone (i.e. called by
@@ -122,10 +126,10 @@ export default class AuthorData {
     }
     let outlined = [];
 
-    let newNounInverter = this.getNounInverter();
+    let nounInverter = this.getNounInverter();
     let parser = this.currentParser;
 
-    // returns HTML, uses newNounInverter in surrounding scope
+    // returns HTML, uses nounInverter in surrounding scope
     const addNounSpans = (tagged, lineNum) => {
       let mainClass;
       let extraClasses;
@@ -135,7 +139,10 @@ export default class AuthorData {
         extraClasses = "";
         let nounTest = tag === "NN" || tag === "NNS";
         // if (lineNum == 4 && wordNum == 2) debugger;
-        if (newNounInverter.isInverted(lineNum, wordNum)) {
+        if (nounInverter.isInverted(lineNum, wordNum)) {
+          console.log(
+            `addNounSpans inverting lineNum ${lineNum} wordNum ${wordNum}`
+          );
           nounTest = !nounTest;
           extraClasses = "inverted";
         }
@@ -151,6 +158,7 @@ export default class AuthorData {
       - Use the word count of each line to initialize each line of the NounInverter
       - Even out the saved punctuation and lines for recombination
       - Recombine the spaces and words in the right order, save as outlined
+      - mark the current NounInverter as cloneable now that initialization is complete
     */
     lines.forEach((line, index) => {
       let lineNum = index + 1;
@@ -164,7 +172,7 @@ export default class AuthorData {
         .map((s) => s.replace(/ /g, UNICODE_NBSP));
 
       let taggedWords = parser.tagWordsInLine(line.replaceAll(punct, ""));
-      newNounInverter.initLineIfNeeded(lineNum, taggedWords.length);
+      nounInverter.initLineIfNeeded(lineNum, taggedWords.length);
 
       // even out the lengths of the two arrays for zipping
       if (matchedSpacePunct.length < taggedWords.length) {
@@ -185,6 +193,7 @@ export default class AuthorData {
       const recombined = R.unnest(R.zip(first, second)).join("");
       outlined.push(recombined);
     });
+    nounInverter.clonable = true;
     return outlined.join("<br>");
   }
 
