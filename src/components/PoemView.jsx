@@ -71,17 +71,12 @@ function PoemView(props) {
       authorDataUpdater.
     */
   function authorDataUpdater(func, args) {
-    if (!authorData.cloneable) {
-      console.log(
-        "authorDataUpdater will NOT clone because authorData is not ready"
-      );
-      return;
-    }
     var aDataClone = R.clone(authorData); // deep copy
-    console.log("authorData has been cloned");
+    console.log("authorDataUpdater: authorData has been cloned");
     // debugger;
     func(aDataClone, ...(args ?? []));
     setAuthorData(aDataClone);
+    console.log("authorDataUpdater: has called setAuthorData");
   }
 
   function handleParserChange(event) {

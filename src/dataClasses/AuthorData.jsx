@@ -1,5 +1,3 @@
-import * as R from "ramda";
-
 import { NounInverter, NounInverterMap } from "./NounInverter";
 import { defaultParser } from "../dataClasses/Parser";
 import { defaultPoem } from "./Poem";
@@ -11,19 +9,13 @@ import {
   defaultTitlesByAuthor,
 } from "../data/sonnets";
 
-const spannedWord = (mainClass, extraClasses, lineNum, wordNum, word) =>
-  `<span class="${mainClass} ${extraClasses}" id="word_${lineNum}_${wordNum}">${word}</span>`;
-
-const punct = /([.,\/#!$%\^&\*;:{}=\-_`~()]+)/gm;
-const spacePunct = /([\s.,\/#!$%\^&\*;:{}=\-_`~()]+)/gm;
-const UNICODE_NBSP = "\u00A0";
-
 const requiredKeys = "name titles authorNames currentPoem currentParser".split(
   " "
 );
 
 let memoCache = new Map();
 
+// TODO this should just be the internal rep of NounInverterMap
 function memoize(func) {
   return (...args) => {
     const joinedArgs = args.join(" -- ");
@@ -83,7 +75,7 @@ export default class AuthorData {
           parserName,
           author,
           title,
-          new NounInverter(poem.lines)
+          new NounInverter(this.currentParser, poem.lines)
         );
       });
       this.nounInverters = memoizedGetNounInverters(
@@ -109,92 +101,8 @@ export default class AuthorData {
     return this.nounInverters ? this.nounInverters.getCurrent() : null;
   }
 
-  get clonable() {
-    return this.nounInverters?.getCurrent()?.cloneable;
-  }
-
-  /* Return the HTML of all the words tagged (as either noun or non-noun)
-
-      Should only be run as a self-modifying clone (i.e. called by
-      authorDataUpdater)
-      */
-  getTaggedWordsHTML() {
-    const lines = this.currentPoem?.lines;
-
-    if (!lines) {
-      return "";
-    }
-    let outlined = [];
-
-    let nounInverter = this.getNounInverter();
-    let parser = this.currentParser;
-
-    // returns HTML, uses nounInverter in surrounding scope
-    const addNounSpans = (tagged, lineNum) => {
-      let mainClass;
-      let extraClasses;
-      let wordNum = 1; // remember 1 based
-
-      return tagged.map(([word, tag]) => {
-        extraClasses = "";
-        let nounTest = tag === "NN" || tag === "NNS";
-        // if (lineNum == 4 && wordNum == 2) debugger;
-        if (nounInverter.isInverted(lineNum, wordNum)) {
-          console.log(
-            `addNounSpans inverting lineNum ${lineNum} wordNum ${wordNum}`
-          );
-          nounTest = !nounTest;
-          extraClasses = "inverted";
-        }
-        mainClass = nounTest ? "noun" : "non-noun";
-        return spannedWord(mainClass, extraClasses, lineNum, wordNum++, word);
-      });
-    };
-
-    /* Algorithm
-      - match the spaces and punctuation, save that as matchedSpacePunct
-      - remove all the punctuation from the words and tag, saving in as
-        parser.tagWordsInLine
-      - Use the word count of each line to initialize each line of the NounInverter
-      - Even out the saved punctuation and lines for recombination
-      - Recombine the spaces and words in the right order, save as outlined
-      - mark the current NounInverter as cloneable now that initialization is complete
-    */
-    lines.forEach((line, index) => {
-      let lineNum = index + 1;
-
-      if (line === "") {
-        outlined.push("");
-        return;
-      }
-      const matchedSpacePunct = line
-        .match(spacePunct)
-        .map((s) => s.replace(/ /g, UNICODE_NBSP));
-
-      let taggedWords = parser.tagWordsInLine(line.replaceAll(punct, ""));
-      nounInverter.initLineIfNeeded(lineNum, taggedWords.length);
-
-      // even out the lengths of the two arrays for zipping
-      if (matchedSpacePunct.length < taggedWords.length) {
-        matchedSpacePunct.push("");
-      } else if (taggedWords.length < matchedSpacePunct.length) {
-        taggedWords.push(["", ""]);
-      }
-
-      // zip results in the correct order (i.e. starting with a space or not)
-      let first, second;
-      if (line[0].match(/\s/)) {
-        first = matchedSpacePunct;
-        second = addNounSpans(taggedWords, lineNum);
-      } else {
-        first = addNounSpans(taggedWords, lineNum);
-        second = matchedSpacePunct;
-      }
-      const recombined = R.unnest(R.zip(first, second)).join("");
-      outlined.push(recombined);
-    });
-    nounInverter.clonable = true;
-    return outlined.join("<br>");
+  recomputeNounOutlinesHTML() {
+    return this.getNounInverter()?.recomputeNounOutlinesHTML();
   }
 
   updateCurrentStats({ falsePos, falseNeg }) {

@@ -12,8 +12,7 @@ import { parsers, parsersByName, defaultParser } from "../dataClasses/Parser";
 
 function ParserChallenger({ authorData, authorDataUpdater, parser }) {
   function _drawNounOutlines(aDataClone) {
-    document.getElementById("text-output").innerHTML =
-      aDataClone.getTaggedWordsHTML();
+    aDataClone.recomputeNounOutlinesHTML();
     const stats = {
       falsePos: document.getElementsByClassName("non-noun inverted").length,
       falseNeg: document.getElementsByClassName("non-noun inverted").length,
@@ -26,7 +25,6 @@ function ParserChallenger({ authorData, authorDataUpdater, parser }) {
   function _invertNoun(aDataClone, line, word) {
     console.log(`flipping line ${line} word ${word}`);
     aDataClone.getNounInverter().flip(line, word);
-    debugger;
     _drawNounOutlines(aDataClone);
   }
   const invertNounUpdater = (line, word) =>
