@@ -58,7 +58,7 @@ function PoemSelector({ authorData, authorDataUpdater, loadingProgress }) {
     return selector("title", title, setTitle, titles);
   }
 
-  const lines = authorData.currentPoem.lines
+  const joinedLines = authorData.currentPoem.lines
     ? authorData.currentPoem.lines.join("\n")
     : "";
 
@@ -72,7 +72,7 @@ function PoemSelector({ authorData, authorDataUpdater, loadingProgress }) {
       {loadingProgress.percentage > 0 && loadingProgress.percentage < 100 && (
         <AuthorProgress {...loadingProgress} />
       )}
-      <textarea value={lines} id="text-input" readOnly />
+      <textarea value={joinedLines} id="text-input" readOnly />
     </>
   );
 }
