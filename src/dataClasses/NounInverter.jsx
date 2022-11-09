@@ -7,11 +7,17 @@ const punct = /([.,\/#!$%\^&\*;:{}=\-_`~()]+)/gm;
 const spacePunct = /([\s.,\/#!$%\^&\*;:{}=\-_`~()]+)/gm;
 const UNICODE_NBSP = "\u00A0";
 
-// for a specific parser and poem (lines of text)
+/* A Noun Inverter
+  for a specific parser and poem (lines of text) which are extracted from
+  AuthorData
+
+  Records weather the user has inverted the value of a word in a poem (changed
+  "noun" -> "non-noun" or vice-versa)
+  */
 export class NounInverter {
-  constructor(parser, poemTextLines) {
-    this.parser = parser;
-    this.poemTextLines = poemTextLines;
+  constructor(aData) {
+    this.parser = aData.currentParser;
+    const lines = (this.poemTextLines = aData.currentPoem.lines);
 
     this.falsePositiveCount = 0;
     this.falseNegativeCount = 0;
@@ -23,7 +29,7 @@ export class NounInverter {
     //      at line 3, word 7 has been inverted by the user
     //    i.e. inverted means now should be considered not-a-noun if originally
     //      a noun or vice-versa
-    this.rep = poemTextLines ? new Array(poemTextLines.length).fill([]) : [[]];
+    this.rep = lines ? new Array(lines.length).fill([]) : [[]];
     this.recomputeNounOutlinesHTML(); // completes initialization
     console.log("NounInverter constructed");
   }
@@ -138,47 +144,47 @@ export class NounInverter {
   }
 }
 
-/* NounInverterMap
+// Note: Uses string names as identifiers of the parser and poem because JS
+// Map objects with non-string keys are unwieldy
+export function nounInverterID(aData) {
+  const stringIDs = [
+    aData.currentParser.name,
+    aData.name,
+    aData.currentPoem.title,
+  ];
+  const joinedArgs = stringIDs.join(" -- ");
+  console.log({ joinedArgs });
+  return joinedArgs;
+}
 
-  Essentially maps (parser, poem) -> nounInverter
+/* store and reuse nounInverters in the memo cache
+  keys are noun inverter IDs
+  values are nounInverter objects 
+*/
+let memoCache = new Map();
 
-  Uses string names as identifiers of the parser and poem because JS Map objects
-  with non-string keys are unwieldy
+/* NounInverterFactory
+
+  Essentially maps (parser, poem) -> nounInverter (new or cached)
+
+  Parser and poem are extracted from the current values of an AuthorData object
 
   Behaves as if (parserName, authorName, poemTitle) is a tuple key.
 
+  The factory returns the existing nounInverter if it already exists (in the
+  memoCache) or creates a new one.
 */
-export class NounInverterMap {
-  constructor(parserName, authorName, poemTitle, nounInverter) {
-    this.inverters = new Map();
-    this.current = nounInverter;
-    this.set(nounInverter, parserName, authorName, poemTitle);
+export class NounInverterFactory {
+  constructor(aData) {
+    this.get(aData);
   }
 
-  // return current NounInverter
-  getCurrent() {
-    return this.current;
-  }
-
-  #invKey(...args) {
-    const joinedArgs = args.join(" -- ");
-    console.log({ joinedArgs });
-    console.log("this.inverters", this.inverters);
-    return joinedArgs;
-  }
-
-  // also sets this.current to the nounInverter when truthy
-  // args: parserName, authorName, poemTitle
-  set(nounInverter, ...args) {
-    if (nounInverter) {
-      this.inverters.set(this.#invKey(...args), nounInverter);
-      this.current = nounInverter;
+  get(aData) {
+    const id = nounInverterID(aData);
+    if (!memoCache.has(id)) {
+      memoCache.set(id, new NounInverter(aData));
     }
-  }
-
-  // get(parserName, authorName, poemTitle)
-  get(...args) {
-    return this.inverters(this.#invKey(...args));
+    return (this.inverter = memoCache.get(id));
   }
 }
 

@@ -10,7 +10,7 @@ import ParserChallenger from "./ParserChallenger";
 import SnackbarAlerts from "./SnackbarAlerts";
 
 import AuthorData, { defaultAuthorData } from "../dataClasses/AuthorData";
-import NounInverter, { NounInverterMap } from "../dataClasses/NounInverter";
+import NounInverter from "../dataClasses/NounInverter";
 import { parsers, parsersByName, defaultParser } from "../dataClasses/Parser";
 import Poem from "../dataClasses/Poem";
 import sonnets, {
@@ -198,7 +198,7 @@ function PoemView(props) {
     const newLines = fetchedPoems["current"][author][title];
 
     authorDataUpdater((aDataClone) => {
-      aDataClone.setPoem(new Poem(author, title, newLines));
+      aDataClone.poem = new Poem(author, title, newLines);
     });
   }, [authorData.currentPoem.title]);
 
@@ -215,7 +215,7 @@ function PoemView(props) {
       // update the possible titles, so the selector will populate before the
       // poem resets
       aDataClone.titles = titlesByAuthor["current"][aDataClone.name];
-      aDataClone.setPoem(new Poem(author, newTitle, newLines));
+      aDataClone.poem = new Poem(author, newTitle, newLines);
     });
   }, [authorData.name]);
 

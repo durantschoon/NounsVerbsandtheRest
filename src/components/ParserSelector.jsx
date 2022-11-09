@@ -10,7 +10,7 @@ import { defaultParser, parsersByName } from "../dataClasses/Parser";
 function ParserSelector({ authorDataUpdater, parserName }) {
   function handleParserChange(event) {
     authorDataUpdater((aDataClone) => {
-      aDataClone.setParser(parsersByName[event.target.value]);
+      aDataClone.parser = parsersByName[event.target.value];
     });
   }
 

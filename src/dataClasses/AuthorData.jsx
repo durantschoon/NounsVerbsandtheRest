@@ -1,4 +1,4 @@
-import { NounInverter, NounInverterMap } from "./NounInverter";
+import { NounInverter, NounInverterFactory } from "./NounInverter";
 import { defaultParser } from "../dataClasses/Parser";
 import { defaultPoem } from "./Poem";
 
@@ -22,70 +22,38 @@ export default class AuthorData {
       currentPoem
       currentParser
 
-      Creates a nounInverters field (NounInverterMap) based on the lines of the
-      current poem
-
-      */
+    Creates a nounInverter field based on the parser and the lines of the current poem
+  */
   constructor(data) {
     Object.assign(this, data);
     for (const key of requiredKeys)
       if (!(key in this))
         console.warn(`AuthorData constructed without required key ${key}`);
+    this.nounInverterFactory = new NounInverterFactory(this);
     this.initNounInverter();
   }
 
-  /*
-      initialize a noun inverter for the current data
-      sets the current NounInverter which can be retrieved with
-      authorData.getNounInverter()
-
-      You can optionally pass in a new poem to be used in the case
-      where the NounInverterMap needs to be created *before* the
-      currentPoem is officially set (because the change in poem title
-      will trigger a rerender before the new NounInverter is in place)
-    */
-  initNounInverter(poem) {
-    poem = poem ?? this.currentPoem;
-    if (this.currentParser && this.currentPoem) {
-      this.nounInverters = new NounInverterMap(
-        this.currentParser.name,
-        this.name,
-        poem.title,
-        new NounInverter(this.currentParser, poem.lines)
-      );
-    } else {
-      this.nounInverters = null;
-    }
+  //initialize a noun inverter for the current data
+  initNounInverter() {
+    this.nounInverter = this.nounInverterFactory.get(this);
   }
 
-  /* When setting a new poem outside of the constructor always call `setPoem`
-      Sets the poem, but also importantly resets the nounInverter before setting
-      the current poem
-    */
-  setPoem(newPoem) {
-    this.initNounInverter(newPoem);
+  set poem(newPoem) {
     this.currentPoem = newPoem;
+    this.initNounInverter();
   }
 
-  /* When setting a new parser outside of the constructor always call
-      `setParser` Sets the parser, but also importantly resets the nounInverter
-    */
-  setParser(newParser) {
+  set parser(newParser) {
     this.currentParser = newParser;
     this.initNounInverter();
   }
 
-  getNounInverter() {
-    return this.nounInverters ? this.nounInverters.getCurrent() : null;
-  }
-
   recomputeNounOutlinesHTML() {
-    return this.getNounInverter()?.recomputeNounOutlinesHTML();
+    return this.nounInverter?.recomputeNounOutlinesHTML();
   }
 
   updateCurrentStats({ falsePos, falseNeg }) {
-    // need to return the new version for authorData update, right?
-    const nounInverter = this.getNounInverter();
+    const nounInverter = this.nounInverter;
     if (nounInverter) {
       nounInverter.falsePositiveCount = falsePos;
       nounInverter.falseNegativeCount = falseNeg;

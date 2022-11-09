@@ -19,7 +19,7 @@ function ParserChallenger({ authorData, authorDataUpdater, parser }) {
 
   function _invertNoun(aDataClone, line, word) {
     console.log(`flipping line ${line} word ${word}`);
-    aDataClone.getNounInverter().flip(line, word);
+    aDataClone.nounInverter.flip(line, word);
     _drawNounOutlines(aDataClone);
   }
   const invertNounUpdater = (line, word) =>
@@ -72,8 +72,8 @@ function ParserChallenger({ authorData, authorDataUpdater, parser }) {
       <WordStats
         {...{
           parserName: parser.name,
-          falsePositiveCount: authorData.getNounInverter().falsePositiveCount,
-          falseNegativeCount: authorData.getNounInverter().falseNegativeCount,
+          falsePositiveCount: authorData.nounInverter.falsePositiveCount,
+          falseNegativeCount: authorData.nounInverter.falseNegativeCount,
         }}
       />
     </>
