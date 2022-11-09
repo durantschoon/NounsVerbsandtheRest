@@ -1,14 +1,9 @@
 import React, { useEffect } from "react";
 
-import FormControlLabel from "@mui/material/FormControlLabel";
-import FormControl from "@mui/material/FormControl";
-import FormLabel from "@mui/material/FormLabel";
 import InputLabel from "@mui/material/InputLabel";
-import Radio from "@mui/material/Radio";
-import RadioGroup from "@mui/material/RadioGroup";
 
-import ParserDescriptions from "./ParserDescriptions";
-import { parsers, parsersByName, defaultParser } from "../dataClasses/Parser";
+import ParserSelector from "./ParserSelector";
+import WordStats from "./WordStats";
 
 function ParserChallenger({ authorData, authorDataUpdater, parser }) {
   function _drawNounOutlines(aDataClone) {
@@ -51,45 +46,14 @@ function ParserChallenger({ authorData, authorDataUpdater, parser }) {
     }
   }
 
-  function handleParserChange(event) {
-    authorDataUpdater((aDataClone) => {
-      aDataClone.currentParser = parsersByName[event.target.value];
-    });
-  }
-
-  const falsePositiveCount = authorData.getNounInverter().falsePositiveCount;
-  const falseNegativeCount = authorData.getNounInverter().falseNegativeCount;
-
   console.log("in ParserChallenger");
 
   return (
     <>
-      <h1> Choose your Natural Language Parser </h1>
-      <div>
-        <ParserDescriptions />
-        <FormControl>
-          <FormLabel id="parsers-radio-buttons-group-label">Parsers</FormLabel>
-          <RadioGroup
-            row
-            aria-labelledby="parsers-radio-buttons-group-label"
-            defaultValue={defaultParser.name}
-            name="parserName"
-            value={defaultParser.name}
-            onChange={handleParserChange}
-          >
-            <FormControlLabel
-              value="parts-of-speech"
-              control={<Radio />}
-              label="Parts-of-Speech"
-            />
-            <FormControlLabel
-              value="en-pos"
-              control={<Radio />}
-              label="en-pos"
-            />
-          </RadioGroup>
-        </FormControl>
-      </div>
+      <ParserSelector
+        {...{ authorDataUpdater, parserName: authorData.currentParser.name }}
+      />
+
       <h1> Correct what is and is not a noun </h1>
       <ul>
         <li>
@@ -104,22 +68,14 @@ function ParserChallenger({ authorData, authorDataUpdater, parser }) {
         </li>
       </ul>
       <div id="text-output"></div>
-      <fieldset id="stats-fieldset">
-        <legend id="stats-legend">
-          <b>
-            <i>Statistics for {parser.name}</i>
-          </b>
-        </legend>
-        <div>
-          <span>
-            <b>False Positives:</b> {falsePositiveCount}{" "}
-          </span>
-          <span>
-            <b>False Negatives:</b> {falseNegativeCount}
-          </span>
-        </div>
-        <b>Total Incorrect:</b> {falsePositiveCount + falseNegativeCount}
-      </fieldset>
+
+      <WordStats
+        {...{
+          parserName: parser.name,
+          falsePositiveCount: authorData.getNounInverter().falsePositiveCount,
+          falseNegativeCount: authorData.getNounInverter().falseNegativeCount,
+        }}
+      />
     </>
   );
 }
