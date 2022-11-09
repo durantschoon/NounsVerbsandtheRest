@@ -5,8 +5,6 @@ import * as R from "ramda";
 import { Grid } from "@mui/material";
 import useMediaQuery from "@mui/material/useMediaQuery";
 
-import "./PoemView.css";
-
 import PoemSelector from "./PoemSelector";
 import ParserChallenger from "./ParserChallenger";
 import SnackbarAlerts from "./SnackbarAlerts";
@@ -20,20 +18,29 @@ import sonnets, {
   defaultTitlesByAuthor,
 } from "../data/sonnets";
 
+import "./PoemView.css";
+
 // Consider merging these three data structures into one:
 
-// valid keys of fetchedPoems are 'default', 'current' or a URL from poetryURLs
+/* For the following data structures,
+   valid keys are 'default', 'current' or a URL from poetryURLs
+
+   - 'current' initially points to the 'default' entry, but after
+     poems are fetched, 'current' will point the values from a url.
+     For example, after a fetch, fetchedPoems['current'] will be the
+     poems fetched from a URL (best from a choice, see below).
+  */
+
 let fetchedPoems = { default: sonnets, current: sonnets };
-// valid keys of authorNames are 'default', 'current' or a URL from poetryURLs
 let authorNames = { default: defaultAuthorNames, current: defaultAuthorNames };
+
 let titlesByAuthorClone = R.clone(defaultTitlesByAuthor);
-// valid keys of titlesByAuthor are 'default', 'current' or a URL from poetryURLs
 let titlesByAuthor = {
   default: titlesByAuthorClone,
   current: titlesByAuthorClone,
 };
 
-// order poetry urls best to worst (highest priority first)
+// order poetry urls "best" to "worst" (highest priority first)
 // debug
 // const poetryURLs = ['https://poetrydb.org', 'http://165.227.95.56:3000']
 const poetryURLs = [
@@ -62,10 +69,53 @@ function PoemView(props) {
     setToast((prevToast) => ({ ...prevToast, open: openOrClosed }));
   }
 
-  /* Update approach:
+  function toastAlert(message, severity) {
+    setToast({ message, severity, open: true });
+  }
+
+  /* setHighestRankFetchedPoem Update the fetched poems to the "best" results
+      - sets the value of fetchedPoems 'current' key to the first-most URL of poetryURLs
+      - calls setAuthorData on the latest data
+    */
+  function setHighestRankFetchedPoem() {
+    for (let url of poetryURLs) {
+      if (fetchedPoems[url] && Object.keys(fetchedPoems[url]).length > 0) {
+        fetchedPoems["current"] = fetchedPoems[url];
+        authorNames["current"] = authorNames[url];
+        titlesByAuthor["current"] = titlesByAuthor[url];
+        break;
+      }
+    }
+    if (fetchedPoems["current"] !== fetchedPoems["default"]) {
+      // Choose the 2nd poet just because we want it to be
+      // Emily Dickinson if the vanilla poemdb server comes up.
+      // But set it to 0th if we end up with only one poet
+      // because some other data has loaded.
+      const authorIndex = Math.min(1, authorNames["current"].length - 1);
+      const author = authorNames["current"][authorIndex];
+
+      const titles = titlesByAuthor["current"][author];
+      const title = titles[0];
+      const lines = fetchedPoems["current"][author][title];
+
+      const currentPoem = new Poem(author, title, lines);
+
+      setAuthorData(
+        new AuthorData({
+          name: author,
+          titles: titles,
+          authorNames: authorNames["current"],
+          currentPoem,
+          currentParser: parser,
+        })
+      );
+    }
+  }
+
+  /* Updating:
       - Clones current authorData
-      - Calls func with the clone and args which is expected to modify the clone
-      - Sets the new author data to the modified clone
+      - Calls func with the clone and any args to func (func is expected to modify the clone)
+      - Finally, sets the new author data to the modified clone
 
       See the pattern below where method names ending in "Updater", wrap a function with
       authorDataUpdater.
@@ -85,50 +135,7 @@ function PoemView(props) {
     });
   }
 
-  function toastAlert(message, severity) {
-    setToast({ message, severity, open: true });
-  }
-
-  /* setHighestRankFetchedPoem Update the fetched poems to the "best" results
-      - sets the value of fetchedPoems 'current' key to the first-most URL of poetryURLs
-      - calls setAuthorData on the latest data
-    */
-  function setHighestRankFetchedPoem() {
-    for (let url of poetryURLs) {
-      if (fetchedPoems[url] && Object.keys(fetchedPoems[url]).length > 0) {
-        fetchedPoems["current"] = fetchedPoems[url];
-        authorNames["current"] = authorNames[url];
-        titlesByAuthor["current"] = titlesByAuthor[url];
-        break;
-      }
-    }
-    // Choose the 2nd poet just because we want it to be
-    // Emily Dickinson if the vanilla poemdb server comes up.
-    // But set it to 0th if we end up with only one poet
-    const authorIndex = Math.min(1, authorNames["current"].length - 1);
-    const author = authorNames["current"][authorIndex];
-
-    const titles = titlesByAuthor["current"][author];
-    const title = titles[0];
-    const lines = fetchedPoems["current"][author][title];
-
-    const currentPoem = new Poem(author, title, lines);
-
-    // infinite loop still occurs when this whole block is commented out
-
-    if (fetchedPoems["current"] !== fetchedPoems["default"]) {
-      setAuthorData(
-        new AuthorData({
-          name: author,
-          titles: titles,
-          authorNames: authorNames["current"],
-          currentPoem,
-          currentParser: parser,
-        })
-      );
-    }
-  }
-
+  // Initial useEffect hook tries to fetch poems from URLs
   useEffect(() => {
     console.log("In initializing useEffect call");
     async function fetchPoems(url) {
@@ -180,11 +187,11 @@ function PoemView(props) {
     Promise.all(fetchedPromises).then(() => setHighestRankFetchedPoem());
   }, []);
 
-  // When the title changes, update the lines
+  // When the title changes, update the lines of poetry text
   useEffect(() => {
     console.log("In authorData.currentPoem.title useEffect call");
     const author = authorData.name;
-    const title = authorData.currentPoem?.title;
+    const title = authorData.currentPoem.title;
     // needed?
     // if (!fetchedPoems?.["current"]?.[author]?.[title]) return;
 

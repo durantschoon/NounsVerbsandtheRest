@@ -1,37 +1,34 @@
-import * as React from 'react';
-import AppBar from '@mui/material/AppBar';
-import Box from '@mui/material/Box';
-import Toolbar from '@mui/material/Toolbar';
-import Typography from '@mui/material/Typography';
-import { createTheme, ThemeProvider } from '@mui/material/styles';
+import * as React from "react";
+import AppBar from "@mui/material/AppBar";
+import Box from "@mui/material/Box";
+import Toolbar from "@mui/material/Toolbar";
+import Typography from "@mui/material/Typography";
+import { createTheme, ThemeProvider } from "@mui/material/styles";
 
-// import IconButton from '@mui/material/IconButton';
-// import MenuIcon from '@mui/icons-material/Menu';
-
-import './App.css'
-import PoemView from './components/PoemView'
+import "./App.css";
+import PoemView from "./components/PoemView";
 
 const theme = createTheme({
-    palette: {
-        primary: {
-            main: '#807b67',
+  palette: {
+    primary: {
+      main: "#807b67",
+    },
+    secondary: {
+      main: "#f8f7f6",
+    },
+  },
+  components: {
+    MuiFormControl: {
+      styleOverrides: {
+        // Name of the slot
+        root: {
+          // Some CSS
+          margin: "4px",
         },
-        secondary: {
-            main: '#f8f7f6',
-        },
-    }, 
-    components: {
-        MuiFormControl: {
-            styleOverrides: {
-                // Name of the slot
-                root: {
-                    // Some CSS
-                    margin: '4px'
-                }
-            }
-        }
-      }
-    });
+      },
+    },
+  },
+});
 
 export default function App() {
   return (
