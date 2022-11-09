@@ -13,24 +13,6 @@ const requiredKeys = "name titles authorNames currentPoem currentParser".split(
   " "
 );
 
-let memoCache = new Map();
-
-// TODO this should just be the internal rep of NounInverterMap
-function memoize(func) {
-  return (...args) => {
-    const joinedArgs = args.join(" -- ");
-    console.log({ joinedArgs });
-    console.log({ memoCache });
-    if (!memoCache.has(joinedArgs)) {
-      console.log("  COMPUTING func!");
-      memoCache.set(joinedArgs, func(...args));
-    } else {
-      console.log("  NOT computing func!");
-    }
-    return memoCache.get(joinedArgs);
-  };
-}
-
 export default class AuthorData {
   /* data should include these fields pertaining to an author:
 
@@ -64,24 +46,13 @@ export default class AuthorData {
       will trigger a rerender before the new NounInverter is in place)
     */
   initNounInverter(poem) {
-    if (poem === undefined) {
-      poem = this.currentPoem;
-    }
+    poem = poem ?? this.currentPoem;
     if (this.currentParser && this.currentPoem) {
-      const memoizedGetNounInverters = memoize((parserName, author, title) => {
-        console.log(`Creating new NounInverter for "${poem.title}"`);
-        console.log(`  args: '${parserName}', '${author}', '${title}'`);
-        return new NounInverterMap(
-          parserName,
-          author,
-          title,
-          new NounInverter(this.currentParser, poem.lines)
-        );
-      });
-      this.nounInverters = memoizedGetNounInverters(
+      this.nounInverters = new NounInverterMap(
         this.currentParser.name,
-        poem.author,
-        poem.title
+        this.name,
+        poem.title,
+        new NounInverter(this.currentParser, poem.lines)
       );
     } else {
       this.nounInverters = null;

@@ -143,40 +143,43 @@ export class NounInverter {
   Essentially maps (parser, poem) -> nounInverter
 
   Uses string names as identifiers of the parser and poem because JS Map objects
-  are unwieldy
+  with non-string keys are unwieldy
 
   Behaves as if (parserName, authorName, poemTitle) is a tuple key.
 
-  New practice: the AuthorData should always have a populated current parser,
-  poem and nounInverter. So don't worry too much about NounInverterMap.current
-  being null.
 */
 export class NounInverterMap {
-  constructor(parserName, authorName, poemTitle, nounInverter = null) {
-    this.current = nounInverter; // might be null
+  constructor(parserName, authorName, poemTitle, nounInverter) {
+    this.inverters = new Map();
+    this.current = nounInverter;
     this.set(parserName, authorName, poemTitle, nounInverter);
-  }
-
-  _initKey(parserName, authorName, poemTitle) {
-    if (!this.parsers?.[parserName]?.[authorName]?.[poemTitle]) {
-      this.rep = this.rep || {};
-      this.rep[parserName] = this.rep[parserName] || {};
-      this.rep[parserName][authorName] = this.rep[parserName][authorName] || {};
-    }
-  }
-
-  // also sets this.current to the nounInverter when truthy
-  set(parserName, authorName, poemTitle, nounInverter) {
-    if (nounInverter) {
-      this._initKey(parserName, authorName, poemTitle);
-      this.rep[parserName][authorName][poemTitle] = nounInverter;
-      this.current = nounInverter;
-    }
   }
 
   // return current NounInverter
   getCurrent() {
     return this.current;
+  }
+
+  #key(...args) {
+    const joinedArgs = args.join(" -- ");
+    console.log({ joinedArgs });
+    console.log("this.inverters", this.inverters);
+    return joinedArgs;
+  }
+
+  // also sets this.current to the nounInverter when truthy
+  set(parserName, authorName, poemTitle, nounInverter) {
+    if (nounInverter) {
+      this.inverters.set(
+        this.#key(parserName, authorName, poemTitle),
+        nounInverter
+      );
+      this.current = nounInverter;
+    }
+  }
+
+  get(...args) {
+    return this.inverters(this.#key(...args));
   }
 }
 
