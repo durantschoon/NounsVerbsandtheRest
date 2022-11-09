@@ -7,12 +7,10 @@ import FormLabel from "@mui/material/FormLabel";
 import ParserDescriptions from "./ParserDescriptions";
 import { defaultParser, parsersByName } from "../dataClasses/Parser";
 
-// TODO fix changing parsers
-
 function ParserSelector({ authorDataUpdater, parserName }) {
   function handleParserChange(event) {
     authorDataUpdater((aDataClone) => {
-      aDataClone.currentParser = parsersByName[event.target.value];
+      aDataClone.setParser(parsersByName[event.target.value]);
     });
   }
 

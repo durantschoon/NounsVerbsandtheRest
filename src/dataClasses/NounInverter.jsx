@@ -152,7 +152,7 @@ export class NounInverterMap {
   constructor(parserName, authorName, poemTitle, nounInverter) {
     this.inverters = new Map();
     this.current = nounInverter;
-    this.set(parserName, authorName, poemTitle, nounInverter);
+    this.set(nounInverter, parserName, authorName, poemTitle);
   }
 
   // return current NounInverter
@@ -160,7 +160,7 @@ export class NounInverterMap {
     return this.current;
   }
 
-  #key(...args) {
+  #invKey(...args) {
     const joinedArgs = args.join(" -- ");
     console.log({ joinedArgs });
     console.log("this.inverters", this.inverters);
@@ -168,18 +168,17 @@ export class NounInverterMap {
   }
 
   // also sets this.current to the nounInverter when truthy
-  set(parserName, authorName, poemTitle, nounInverter) {
+  // args: parserName, authorName, poemTitle
+  set(nounInverter, ...args) {
     if (nounInverter) {
-      this.inverters.set(
-        this.#key(parserName, authorName, poemTitle),
-        nounInverter
-      );
+      this.inverters.set(this.#invKey(...args), nounInverter);
       this.current = nounInverter;
     }
   }
 
+  // get(parserName, authorName, poemTitle)
   get(...args) {
-    return this.inverters(this.#key(...args));
+    return this.inverters(this.#invKey(...args));
   }
 }
 

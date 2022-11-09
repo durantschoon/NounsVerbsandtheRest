@@ -28,7 +28,6 @@ export default class AuthorData {
       */
   constructor(data) {
     Object.assign(this, data);
-
     for (const key of requiredKeys)
       if (!(key in this))
         console.warn(`AuthorData constructed without required key ${key}`);
@@ -59,13 +58,21 @@ export default class AuthorData {
     }
   }
 
-  /* When setting a new poem outside of the constructor always call this
-      `setPoem` Sets the poem, but also importantly resets the nounInverter
-      before setting the current poem
+  /* When setting a new poem outside of the constructor always call `setPoem`
+      Sets the poem, but also importantly resets the nounInverter before setting
+      the current poem
     */
   setPoem(newPoem) {
     this.initNounInverter(newPoem);
     this.currentPoem = newPoem;
+  }
+
+  /* When setting a new parser outside of the constructor always call
+      `setParser` Sets the parser, but also importantly resets the nounInverter
+    */
+  setParser(newParser) {
+    this.currentParser = newParser;
+    this.initNounInverter();
   }
 
   getNounInverter() {
