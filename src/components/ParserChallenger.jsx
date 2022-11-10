@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useState, useEffect } from "react";
 
 import InputLabel from "@mui/material/InputLabel";
 
@@ -11,12 +11,20 @@ function ParserChallenger({
   authorDataApplyFunc,
   parser,
 }) {
+  const [stats, setStats] = useState({ falsePos: 0, falseNeg: 0 });
+
   function _drawNounOutlines(aDataClone) {
     aDataClone.recomputeNounOutlinesHTML();
     const stats = {
       falsePos: document.getElementsByClassName("non-noun inverted").length,
-      falseNeg: document.getElementsByClassName("non-noun inverted").length,
+      falseNeg: document.getElementsByClassName("noun inverted").length,
     };
+    setStats(stats);
+
+    // update the "official" author data state
+    authorDataUpdater((aDataClone) => aDataClone.updateCurrentStats(stats));
+
+    // update the clone before binding it in the click handlers
     aDataClone.updateCurrentStats(stats);
     _addClickHandlersToSpans(aDataClone);
   }
@@ -74,8 +82,8 @@ function ParserChallenger({
       <WordStats
         {...{
           parserName: parser.name,
-          falsePositiveCount: authorData.nounInverter.falsePositiveCount,
-          falseNegativeCount: authorData.nounInverter.falseNegativeCount,
+          falsePositiveCount: stats.falsePos,
+          falseNegativeCount: stats.falseNeg,
         }}
       />
     </>

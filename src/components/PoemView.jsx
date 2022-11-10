@@ -112,14 +112,6 @@ function PoemView(props) {
     }
   }
 
-  /* FIXME TODO
-
-      I think the bug is that there needs to be a separate update path triggered
-      from a handler, so I'll make a separate function and factor out the "setting"
-      part.
-
-      */
-
   /* Updating:
 
       - Clones current authorData
