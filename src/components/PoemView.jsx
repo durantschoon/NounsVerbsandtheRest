@@ -112,21 +112,39 @@ function PoemView(props) {
     }
   }
 
+  /* FIXME TODO
+
+      I think the bug is that there needs to be a separate update path triggered
+      from a handler, so I'll make a separate function and factor out the "setting"
+      part.
+
+      */
+
   /* Updating:
+
       - Clones current authorData
-      - Calls func with the clone and any args to func (func is expected to modify the clone)
+
+      - Calls func with the clone and any args to func (func is expected to
+        modify the clone)
+
       - Finally, sets the new author data to the modified clone
 
       See the pattern below where method names ending in "Updater", wrap a function with
       authorDataUpdater.
+
+      There is a separate pattern for calling from a click handler. In that
+      case, we don't want to clone but start from a modified state (an existing
+      clone that represents the latest updates, not the one bound in
+      authorDataUpdater at the time of component creation). The handler version
+      should call `authorDataApplyFunc` directly instead.
     */
+  function authorDataApplyFunc(aData, func, args) {
+    func(aData, ...(args ?? []));
+    setAuthorData(aData);
+  }
   function authorDataUpdater(func, args) {
-    var aDataClone = R.clone(authorData); // deep copy
-    console.log("authorDataUpdater: authorData has been cloned");
-    // debugger;
-    func(aDataClone, ...(args ?? []));
-    setAuthorData(aDataClone);
-    console.log("authorDataUpdater: has called setAuthorData");
+    var aDataClone = R.clone(authorData); // deep copy for modification and resetting
+    authorDataApplyFunc(aDataClone, func, args);
   }
 
   function handleParserChange(event) {
@@ -137,7 +155,6 @@ function PoemView(props) {
 
   // Initial useEffect hook tries to fetch poems from URLs
   useEffect(() => {
-    console.log("In initializing useEffect call");
     async function fetchPoems(url) {
       const authorURL = url + "/author";
       let response = await fetch(authorURL);
@@ -189,7 +206,6 @@ function PoemView(props) {
 
   // When the title changes, update the lines of poetry text
   useEffect(() => {
-    console.log("In authorData.currentPoem.title useEffect call");
     const author = authorData.name;
     const title = authorData.currentPoem.title;
     // needed?
@@ -204,7 +220,6 @@ function PoemView(props) {
 
   // When the author name changes, set the current title to the first one fetched
   useEffect(() => {
-    console.log("In authorData.name useEffect call");
     const author = authorData.name;
     const newTitle = titlesByAuthor["current"]?.[author]?.[0];
     // needed?
@@ -234,7 +249,9 @@ function PoemView(props) {
           )}
         </Grid>
         <Grid item xs={6}>
-          <ParserChallenger {...{ authorData, authorDataUpdater, parser }} />
+          <ParserChallenger
+            {...{ authorData, authorDataUpdater, authorDataApplyFunc, parser }}
+          />
         </Grid>
       </Grid>
       <SnackbarAlerts {...{ ...toast, setSnackOpen }} />

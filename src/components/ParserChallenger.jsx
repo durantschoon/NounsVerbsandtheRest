@@ -5,7 +5,12 @@ import InputLabel from "@mui/material/InputLabel";
 import ParserSelector from "./ParserSelector";
 import WordStats from "./WordStats";
 
-function ParserChallenger({ authorData, authorDataUpdater, parser }) {
+function ParserChallenger({
+  authorData,
+  authorDataUpdater,
+  authorDataApplyFunc,
+  parser,
+}) {
   function _drawNounOutlines(aDataClone) {
     aDataClone.recomputeNounOutlinesHTML();
     const stats = {
@@ -13,25 +18,25 @@ function ParserChallenger({ authorData, authorDataUpdater, parser }) {
       falseNeg: document.getElementsByClassName("non-noun inverted").length,
     };
     aDataClone.updateCurrentStats(stats);
-    addClickHandlersToSpans();
+    _addClickHandlersToSpans(aDataClone);
   }
   const drawNounOutlinesUpdater = () => authorDataUpdater(_drawNounOutlines);
 
-  function _invertNoun(aDataClone, line, word) {
-    console.log(`flipping line ${line} word ${word}`);
-    aDataClone.nounInverter.flip(line, word);
-    _drawNounOutlines(aDataClone);
-  }
-  const invertNounUpdater = (line, word) =>
-    authorDataUpdater(_invertNoun, [line, word]);
   // changing the poem (lines) or parser will trigger redrawing of noun outlines
   useEffect(drawNounOutlinesUpdater, [
     authorData.currentPoem.title,
     authorData.currentParser.name,
   ]);
 
+  function _invertNoun(aDataClone, line, word) {
+    aDataClone.nounInverter.flip(line, word);
+    _drawNounOutlines(aDataClone);
+  }
+  const applyInvertNouns = (aDataClone, line, word) =>
+    authorDataApplyFunc(aDataClone, _invertNoun, [line, word]);
+
   // clicking on a word should also trigger redrawing of noun outlines
-  function addClickHandlersToSpans() {
+  function _addClickHandlersToSpans(aDataClone) {
     const classNames = ["noun", "non-noun"];
     for (let className of classNames) {
       const spans = document.getElementsByClassName(className);
@@ -39,14 +44,11 @@ function ParserChallenger({ authorData, authorDataUpdater, parser }) {
         span.addEventListener("click", (event) => {
           event.stopPropagation();
           const [line, word] = event.target.id.split("_").slice(1);
-          console.log(`clicking at line ${line} word ${word}`);
-          invertNounUpdater(+line, +word);
+          applyInvertNouns(aDataClone, +line, +word);
         });
       }
     }
   }
-
-  console.log("in ParserChallenger");
 
   return (
     <>

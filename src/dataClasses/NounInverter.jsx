@@ -31,7 +31,6 @@ export class NounInverter {
     //      a noun or vice-versa
     this.rep = lines ? new Array(lines.length).fill([]) : [[]];
     this.recomputeNounOutlinesHTML(); // completes initialization
-    console.log("NounInverter constructed");
   }
   // line, word are 1-based
   isInverted(line, word) {
@@ -39,29 +38,21 @@ export class NounInverter {
   }
   // line, word are 1-based
   setInverted(line, word, wordIsInverted) {
-    console.log("setInverted", { line, word, wordIsInverted });
-    // debugger;
     this.rep[line - 1][word - 1] = wordIsInverted;
-    // debugger;
   }
   // line, word are 1-based
   flip(line, word) {
-    console.log("rep before:", this.rep);
     this.setInverted(line, word, !this.isInverted(line, word));
-    console.log("rep after:", this.rep);
   }
   // lineNum is 1-based
   initLineIfNeeded(lineNum, lineLength) {
     if (this.rep.length === 0) return;
     if (this.rep[lineNum - 1].length === 0) {
       this.rep[lineNum - 1] = new Array(lineLength).fill(false);
-      console.log(`  initialized line`, lineNum);
-      // if (lineNum == 6) debugger;
     }
   }
   // Return the HTML of all the words tagged (as either noun or non-noun)
   _getTaggedWordsHTML() {
-    // debugger;
     const lines = this.poemTextLines;
     const parser = this.parser;
 
@@ -78,11 +69,7 @@ export class NounInverter {
       return tagged.map(([word, tag]) => {
         extraClasses = "";
         let nounTest = tag === "NN" || tag === "NNS";
-        // if (lineNum == 4 && wordNum == 2) debugger;
         if (this.isInverted(lineNum, wordNum)) {
-          console.log(
-            `addNounSpans inverting lineNum ${lineNum} wordNum ${wordNum}`
-          );
           nounTest = !nounTest;
           extraClasses = "inverted";
         }
@@ -139,7 +126,6 @@ export class NounInverter {
     const textOuput = document.getElementById("text-output");
     if (!textOuput) return;
     textOuput.innerHTML = this.taggedWordsHTML = this._getTaggedWordsHTML();
-    // debugger;
     return this.taggedWordsHTML;
   }
 }
@@ -153,7 +139,6 @@ export function nounInverterID(aData) {
     aData.currentPoem.title,
   ];
   const joinedArgs = stringIDs.join(" -- ");
-  console.log({ joinedArgs });
   return joinedArgs;
 }
 
