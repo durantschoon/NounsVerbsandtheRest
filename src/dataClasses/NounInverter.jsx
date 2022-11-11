@@ -3,8 +3,8 @@ import * as R from "ramda";
 const spannedWord = (mainClass, extraClasses, lineNum, wordNum, word) =>
   `<span class="${mainClass} ${extraClasses}" id="word_${lineNum}_${wordNum}">${word}</span>`;
 
-const punct = /([.,\/#!$%\^&\*;:{}=\-_`~()]+)/gm;
-const spacePunct = /([\s.,\/#!$%\^&\*;:{}=\-_`~()]+)/gm;
+const punct = /([.,\/#!$%\^&\*;:{}=\-_`~()']+)/gm;
+const spacePunct = /([\s.,\/#!$%\^&\*;:{}=\-_`~()']+)/gm;
 const UNICODE_NBSP = "\u00A0";
 
 /* A Noun Inverter
