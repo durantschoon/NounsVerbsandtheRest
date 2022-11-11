@@ -42,11 +42,11 @@ let titlesByAuthor = {
 
 // order poetry urls "best" to "worst" (highest priority first)
 // debug
-// const poetryURLs = ["https://poetrydb.org", "http://165.227.95.56:3000"];
-const poetryURLs = [
-  "http://fetch-should-fail.com",
-  "http://165.227.95.56:3000",
-];
+const poetryURLs = ["https://poetrydb.org", "http://165.227.95.56:3000"];
+// const poetryURLs = [
+//   "http://fetch-should-fail.com",
+//   "http://165.227.95.56:3000",
+// ];
 // const poetryURLs = [];
 
 function PoemView(props) {
