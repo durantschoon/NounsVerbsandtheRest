@@ -22,7 +22,7 @@ function ParserChallenger({
     setStats(stats);
 
     // update the "official" author data state
-    authorDataUpdater((aDataClone) => aDataClone.updateCurrentStats(stats));
+    authorDataUpdater((clone) => clone.updateCurrentStats(stats));
 
     // update the clone before binding it in the click handlers
     aDataClone.updateCurrentStats(stats);
