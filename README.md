@@ -1,4 +1,5 @@
-<img width="1675" alt="NVR Screen Shot 2022-10-12" src="https://user-images.githubusercontent.com/12535192/195400830-ea987633-c365-4077-bfcf-2d0b46d11a8a.png">
+<img width="841" alt="NVR Screen Shot 2022-11-11" src="https://user-images.githubusercontent.com/12535192/201433977-f76663ab-742e-449b-b42d-1d8a650161ca.png">
+
 
 
 # Durant's Notes
