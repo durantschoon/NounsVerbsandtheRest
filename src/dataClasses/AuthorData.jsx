@@ -49,7 +49,8 @@ export default class AuthorData {
   }
 
   recomputeNounOutlinesHTML() {
-    return this.nounInverter?.recomputeNounOutlinesHTML();
+    this.initNounInverter(); // because we might have a new parser now
+    return this.nounInverter.recomputeNounOutlinesHTML();
   }
 
   updateCurrentStats({ falsePos, falseNeg }) {
