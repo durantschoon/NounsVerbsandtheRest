@@ -43,20 +43,20 @@ const sonnets = {
 
 // the code below will automatically set variables for defaults
 
-let author
-let authorList
+let authorName
+let authorNames
 let title
-let titleList
+let titles
 let textLines
 let titlesByAuthor = {}
 for (const [sAuthor, sonnetsByAuthor] of Object.entries(sonnets)) {
-    if (author === undefined) {
-        author = sAuthor
+    if (authorName === undefined) {
+        authorName = sAuthor
     }
-    if (authorList === undefined) {
-        authorList = [sAuthor]
+    if (authorNames === undefined) {
+        authorNames = [sAuthor]
     } else {
-        authorList.push(sAuthor)
+        authorNames.push(sAuthor)
     }
     for (const [sTitle, lines] of Object.entries(sonnetsByAuthor)) {
         if (title === undefined) {
@@ -71,15 +71,15 @@ for (const [sAuthor, sonnetsByAuthor] of Object.entries(sonnets)) {
             textLines = lines
         }
     }
-    if (titleList === undefined) {
-        titleList = titlesByAuthor[author]
+    if (titles === undefined) {
+        titles = titlesByAuthor[authorName]
     }
 }
 
-export const defaultAuthor = author
-export const defaultAuthorList = authorList
+export const defaultAuthorName = authorName
+export const defaultAuthorNames = authorNames
 export const defaultTitle = title
-export const defaultTitleList = titleList
+export const defaultTitles = titles
 export const defaultTitlesByAuthor = titlesByAuthor
 export const defaultTextLines = textLines
 
