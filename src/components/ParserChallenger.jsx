@@ -15,14 +15,26 @@ function ParserChallenger({
 
   function _drawNounOutlines(aDataClone) {
     aDataClone.recomputeNounOutlinesHTML();
+
+    /* These are the expected ways _drawNounOutlines will be called
+
+      1. from the useEffect in this component (when the poem title or parser
+         changes) `authorDataUpdater` should start with the current authorData,
+         clone it before calling this and set authorData to the clone in the
+         usual way.
+
+      2. from a click on a word in the text-output. In this case, there was a
+         bound version of an authorData clone (that seems to be the right one to
+         use) from the time the click handler was created. Changes to this clone
+         are made from authorDataApplyFunc which will be used ultimately to
+         update the official authorData state in an ancestor component.
+
+    */
     const stats = {
       falsePos: document.getElementsByClassName("non-noun inverted").length,
       falseNeg: document.getElementsByClassName("noun inverted").length,
     };
     setStats(stats);
-
-    // update the "official" author data state
-    authorDataUpdater((clone) => clone.updateCurrentStats(stats));
 
     // update the clone before binding it in the click handlers
     aDataClone.updateCurrentStats(stats);
