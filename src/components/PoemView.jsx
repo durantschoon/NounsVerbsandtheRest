@@ -199,16 +199,14 @@ function PoemView(props) {
   // When the title changes, update the lines of poetry
   useEffect(() => {
     const author = authorData.name;
-    const title = authorData.currentPoem.title;
-    // needed?
-    // if (!fetchedPoems?.["current"]?.[author]?.[title]) return;
+    const title = authorData.stagedTitleChange;
 
     const newLines = fetchedPoems["current"][author][title];
 
     authorDataUpdater((aDataClone) => {
       aDataClone.poem = new Poem(author, title, newLines);
     });
-  }, [authorData.currentPoem.title]);
+  }, [authorData.stagedTitleChange]);
 
   // When the author name changes, set the current title to the first one fetched
   useEffect(() => {

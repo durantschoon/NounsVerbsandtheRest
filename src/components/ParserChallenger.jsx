@@ -14,7 +14,7 @@ function ParserChallenger({
   const [stats, setStats] = useState({ falsePos: 0, falseNeg: 0 });
 
   function _drawNounOutlines(aDataClone) {
-    aDataClone.recomputeNounOutlinesHTML();
+    aDataClone.recomputeNounOutlines();
 
     /* These are the expected ways _drawNounOutlines will be called
 

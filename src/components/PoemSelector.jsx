@@ -50,7 +50,7 @@ function PoemSelector({ authorData, authorDataUpdater, loadingProgress }) {
   function titleSelector() {
     function setTitle(title) {
       return authorDataUpdater((aDataClone) => {
-        aDataClone.currentPoem.title = title;
+        aDataClone.stagedTitleChange = title;
       });
     }
     const title = authorData.currentPoem.title;

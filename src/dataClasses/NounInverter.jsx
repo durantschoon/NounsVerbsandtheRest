@@ -30,20 +30,24 @@ export class NounInverter {
     //    i.e. inverted means now should be considered not-a-noun if originally
     //      a noun or vice-versa
     this.rep = lines ? new Array(lines.length).fill([]) : [[]];
-    this.recomputeNounOutlinesHTML(); // completes initialization
+    this.recomputeNounOutlines(); // completes initialization
   }
+
   // line, word are 1-based
   isInverted(line, word) {
     return this.rep[line - 1][word - 1];
   }
+
   // line, word are 1-based
   setInverted(line, word, wordIsInverted) {
     this.rep[line - 1][word - 1] = wordIsInverted;
   }
+
   // line, word are 1-based
   flip(line, word) {
     this.setInverted(line, word, !this.isInverted(line, word));
   }
+
   // lineNum is 1-based
   initLineIfNeeded(lineNum, lineLength) {
     if (this.rep.length === 0) return;
@@ -51,6 +55,7 @@ export class NounInverter {
       this.rep[lineNum - 1] = new Array(lineLength).fill(false);
     }
   }
+
   // Return the HTML of all the words tagged (as either noun or non-noun)
   _getTaggedWordsHTML() {
     const lines = this.poemTextLines;
@@ -122,11 +127,11 @@ export class NounInverter {
     });
     return outlined.join("<br>");
   }
-  recomputeNounOutlinesHTML() {
+
+  recomputeNounOutlines() {
     const textOuput = document.getElementById("text-output");
     if (!textOuput) return;
     textOuput.innerHTML = this.taggedWordsHTML = this._getTaggedWordsHTML();
-    return this.taggedWordsHTML;
   }
 }
 

@@ -22,7 +22,12 @@ export default class AuthorData {
       currentPoem
       currentParser
 
-    Creates a nounInverter field based on the parser and the lines of the current poem
+      Other added fields:
+
+      - `nounInverter` based on the parser and the lines of the current poem
+
+      - `stagedTitleChange` changing this should trigger an atomic update where
+        all the fields of a poem are updated at once
   */
   constructor(data) {
     Object.assign(this, data);
@@ -30,27 +35,51 @@ export default class AuthorData {
       if (!(key in this))
         console.warn(`AuthorData constructed without required key ${key}`);
     this.nounInverterFactory = new NounInverterFactory(this);
-    this.initNounInverter();
+    this.stagedTitleChange = this.currentPoem.title;
+    this.recomputeNounOutlines();
   }
 
   //initialize a noun inverter for the current data
-  initNounInverter() {
-    this.nounInverter = this.nounInverterFactory.get(this);
-  }
+  // initNounInverter() {
+  //     this.nounInverter = this.nounInverterFactory.get(this);
+  //   console.log(
+  //     `initNounInverter AFTER assignment`,
+  //     this.nounInverter.poemTextLines
+  //   );
+  // }
 
   set poem(newPoem) {
     this.currentPoem = newPoem;
-    this.initNounInverter();
+    console.log(
+      "set poem BEFORE",
+      this.currentPoem.title,
+      this.currentPoem.lines
+    );
+    // this.initNounInverter(); OLD
+    this.recomputeNounOutlines();
+    console.log(
+      "set poem AFTER",
+      this.currentPoem.title,
+      this.currentPoem.lines
+    );
   }
 
   set parser(newParser) {
     this.currentParser = newParser;
-    this.initNounInverter();
+    this.recomputeNounOutlines();
   }
 
-  recomputeNounOutlinesHTML() {
-    this.initNounInverter(); // because we might have a new parser now
-    return this.nounInverter.recomputeNounOutlinesHTML();
+  recomputeNounOutlines() {
+    this.nounInverter = this.nounInverterFactory.get(this);
+    // this.initNounInverter(); // because we might have a new parser now
+    console.log(
+      "AuthorData recomputeNounOutlines",
+      this.currentParser.name,
+      this.currentPoem.title,
+      this.currentPoem.lines,
+      this.nounInverter.poemTextLines
+    );
+    this.nounInverter.recomputeNounOutlines();
   }
 
   updateCurrentStats({ falsePos, falseNeg }) {
