@@ -39,29 +39,9 @@ export default class AuthorData {
     this.recomputeNounOutlines();
   }
 
-  //initialize a noun inverter for the current data
-  // initNounInverter() {
-  //     this.nounInverter = this.nounInverterFactory.get(this);
-  //   console.log(
-  //     `initNounInverter AFTER assignment`,
-  //     this.nounInverter.poemTextLines
-  //   );
-  // }
-
   set poem(newPoem) {
     this.currentPoem = newPoem;
-    console.log(
-      "set poem BEFORE",
-      this.currentPoem.title,
-      this.currentPoem.lines
-    );
-    // this.initNounInverter(); OLD
     this.recomputeNounOutlines();
-    console.log(
-      "set poem AFTER",
-      this.currentPoem.title,
-      this.currentPoem.lines
-    );
   }
 
   set parser(newParser) {
@@ -71,14 +51,6 @@ export default class AuthorData {
 
   recomputeNounOutlines() {
     this.nounInverter = this.nounInverterFactory.get(this);
-    // this.initNounInverter(); // because we might have a new parser now
-    console.log(
-      "AuthorData recomputeNounOutlines",
-      this.currentParser.name,
-      this.currentPoem.title,
-      this.currentPoem.lines,
-      this.nounInverter.poemTextLines
-    );
     this.nounInverter.recomputeNounOutlines();
   }
 
