@@ -10,7 +10,6 @@ import ParserChallenger from "./ParserChallenger";
 import SnackbarAlerts from "./SnackbarAlerts";
 
 import AuthorData, { defaultAuthorData } from "../dataClasses/AuthorData";
-import NounInverter from "../dataClasses/NounInverter";
 import { parsers, parsersByName, defaultParser } from "../dataClasses/Parser";
 import Poem from "../dataClasses/Poem";
 import sonnets, {
