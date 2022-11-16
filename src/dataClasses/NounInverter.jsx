@@ -129,6 +129,11 @@ export class NounInverter {
   }
 
   recomputeNounOutlines() {
+    // Using getElementById here because the typical alternative seems far too
+    // complicated: invoking useRef. We'd have to pass the ref through
+    // authorData which contains the nounInverter. Note that the nounInverter
+    // is cached so it seems like a potential problem if it references a ref
+    // that gets re-created when the page rerenders.
     const textOuput = document.getElementById("text-output");
     if (!textOuput) return;
     textOuput.innerHTML = this.taggedWordsHTML = this._getTaggedWordsHTML();
