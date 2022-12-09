@@ -187,10 +187,12 @@ function PoemView(props) {
         }
       }
     }
-    const fetchedPromises = poetryURLs.map((url) => {
-      return fetchPoems(url).catch((error) =>
-        toastAlert(`${error.message}: ${url}`, "warning")
-      );
+    const fetchedPromises = poetryURLs.map(async (url) => {
+      try {
+        return await fetchPoems(url);
+      } catch (error) {
+        return toastAlert(`${error.message}: ${url}`, "warning");
+      }
     });
     Promise.all(fetchedPromises).then(() => setHighestRankFetchedPoem());
   }, []);
