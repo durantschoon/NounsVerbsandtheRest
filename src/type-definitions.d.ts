@@ -3,11 +3,16 @@
 // StructuredAuthorData is a plain old javascript object and it might
 // be parsed to create an instance of AuthorData for example.
 
-// map poem title strings to body string arrays (poem lines)
+type AuthorName = string
+type Title = string
+type Line = string
+
 interface StructuredPoemData {
-    [key: string]: string[];
+    [title: Title]: Line[];
 }
-// keys are author strings
 interface StructuredAuthorData {
-    [key: string]: StructuredPoemData;
+    [author: AuthorName]: StructuredPoemData;
+}
+interface TitlesByAuthor {
+    [author: string]: Title[] 
 }

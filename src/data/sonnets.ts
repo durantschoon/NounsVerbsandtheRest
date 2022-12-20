@@ -43,36 +43,28 @@ const sonnets: StructuredAuthorData = {
 
 // the code below will automatically set variables for defaults
 
-let authorName
-let authorNames
-let title
-let titles
-let textLines
-let titlesByAuthor: { [key: string]: string[] } = {}
+let firstAuthorName: AuthorName | undefined
+let authorNames: AuthorName[] = []
+let firstTitle: Title | undefined
+let firstTitles: Title[] = []
+let firstTextLines: Line[] = []
+let titlesByAuthor: TitlesByAuthor = {}
 for (const [sAuthor, sonnetsByAuthor] of Object.entries(sonnets)) {
-    authorName = authorName ?? sAuthor
-    if (authorNames === undefined) {
-        authorNames = [sAuthor]
-    } else {
-        authorNames.push(sAuthor)
-    }
+    firstAuthorName = firstAuthorName ?? sAuthor
+    authorNames.push(sAuthor)
     for (const [sTitle, lines] of Object.entries(sonnetsByAuthor)) {
-        title = title ?? sTitle
-        if (titlesByAuthor[sAuthor] === undefined) {
-            titlesByAuthor[sAuthor] = [sTitle] 
-        } else {
-            titlesByAuthor[sAuthor].push(sTitle)
-        }
-        textLines = textLines ?? lines
+        firstTitle = firstTitle ?? sTitle
+        titlesByAuthor[sAuthor].push(sTitle)
+        firstTextLines = firstTextLines ?? lines
     }
-    titles = titles ?? titlesByAuthor[authorName]
+    firstTitles = firstTitles ?? titlesByAuthor[firstAuthorName]
 }
 
-export const defaultAuthorName = authorName
+export const defaultAuthorName = firstAuthorName
 export const defaultAuthorNames = authorNames
-export const defaultTitle = title
-export const defaultTitles = titles
+export const defaultTitle = firstTitle
+export const defaultTitles = firstTitles
 export const defaultTitlesByAuthor = titlesByAuthor
-export const defaultTextLines = textLines
+export const defaultTextLines = firstTextLines
 
 export default sonnets
