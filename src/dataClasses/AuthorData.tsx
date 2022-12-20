@@ -1,5 +1,5 @@
 import { NounInverter, NounInverterFactory } from "./NounInverter";
-import { defaultParser } from "../dataClasses/Parser";
+import { defaultParser } from "./Parser";
 import { defaultPoem } from "./Poem";
 
 import {

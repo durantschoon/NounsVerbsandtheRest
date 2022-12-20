@@ -1,7 +1,5 @@
 <img width="841" alt="NVR Screen Shot 2022-11-11" src="https://user-images.githubusercontent.com/12535192/201433977-f76663ab-742e-449b-b42d-1d8a650161ca.png">
 
-
-
 # Durant's Notes
 
 This personal project started out as a vite-mui project on [stackblitz](https://stackblitz.com/). If you haven't seen vite or stackblitz, they're pretty cool (at least in Fall 2022). One thing about vite that I just found out is that Jest (testing) support is not great. There is a vite-jest npm package (which is in thie repo, but I need to force install from npm). I will probably explore vitest with React Testing Library soon.
@@ -29,5 +27,3 @@ Brilliantly easy:
 1. Go here https://github.com/mui/material-ui/tree/master/examples/vitejs
 2. Click the Open in Stackblitz button
 3. Click the Fork button at the top
-
-

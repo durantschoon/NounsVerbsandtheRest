@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import * as R from "ramda";
 
-import { Grid } from "@mui/material";
+import { Grid, Theme } from "@mui/material";
 import useMediaQuery from "@mui/material/useMediaQuery";
 
 import PoemSelector from "./PoemSelector";
@@ -19,36 +19,44 @@ import sonnets, {
 
 import "./PoemView.css";
 
-// Consider merging these three data structures into one:
+// order poetry urls "best" to "worst" (highest priority first)
+// Define as an enum so that we can create a type FetchedKey below
 
-/* For the following data structures,
-   valid keys are 'default', 'current' or a URL from poetryURLs
+// debug
+enum PoetryURLs {
+  "https://poetrydb.org", 
+  "http://165.227.95.56:3000"
+}
 
+// enum PoetryURLs {
+//   "http://fetch-should-fail.com",
+//   "http://165.227.95.56:3000",
+// };
+// enum poetryURLs {};
+
+/* For the following data structures, valid keys are 'default', 'current' or a URL from poetryURLs
    - 'current' initially points to the 'default' entry, but after
      poems are fetched, 'current' will point the values from a url.
      For example, after a fetch, fetchedPoems['current'] will be the
-     poems fetched from a URL (best from a choice, see below).
+     poems fetched from a URL (the "best" from a choice, see above).
   */
 
-let fetchedPoems = { default: sonnets, current: sonnets };
+type FetchedKey = "default" | "current" | keyof typeof PoetryURLs
+
+type FetchedPoems = { 
+  [key in FetchedKey]?: StructuredAuthorData
+}
+
+let fetchedPoems: FetchedPoems = { default: sonnets, current: sonnets };
 let authorNames = { default: defaultAuthorNames, current: defaultAuthorNames };
 
 let titlesByAuthorClone = R.clone(defaultTitlesByAuthor);
 let titlesByAuthor = {
   default: titlesByAuthorClone,
   current: titlesByAuthorClone,
-};
+}
 
-// order poetry urls "best" to "worst" (highest priority first)
-// debug
-const poetryURLs = ["https://poetrydb.org", "http://165.227.95.56:3000"];
-// const poetryURLs = [
-//   "http://fetch-should-fail.com",
-//   "http://165.227.95.56:3000",
-// ];
-// const poetryURLs = [];
-
-function PoemView(props) {
+function PoemView() {
   const [parser, setParser] = useState(defaultParser);
   const [authorData, setAuthorData] = useState(defaultAuthorData);
 
@@ -62,13 +70,13 @@ function PoemView(props) {
     percentage: 0,
   });
 
-  const extraLargeScreen = useMediaQuery((theme) => theme.breakpoints.up("xl"));
+  const extraLargeScreen = useMediaQuery<Theme>((theme: Theme) => theme.breakpoints.up("xl"));
 
-  function setSnackOpen(openOrClosed) {
+  function setSnackOpen(openOrClosed: boolean) {
     setToast((prevToast) => ({ ...prevToast, open: openOrClosed }));
   }
 
-  function toastAlert(message, severity) {
+  function toastAlert(message: string, severity: string) {
     setToast({ message, severity, open: true });
   }
 

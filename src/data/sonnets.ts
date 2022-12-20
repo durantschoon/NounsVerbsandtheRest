@@ -1,4 +1,4 @@
-const sonnets = {
+const sonnets: StructuredAuthorData = {
     "William Shakespeare": {
         'Sonnet 60': `Sonnet 60: Like As The Waves Make Towards The Pebbled Shore
 
@@ -48,32 +48,24 @@ let authorNames
 let title
 let titles
 let textLines
-let titlesByAuthor = {}
+let titlesByAuthor: { [key: string]: string[] } = {}
 for (const [sAuthor, sonnetsByAuthor] of Object.entries(sonnets)) {
-    if (authorName === undefined) {
-        authorName = sAuthor
-    }
+    authorName = authorName ?? sAuthor
     if (authorNames === undefined) {
         authorNames = [sAuthor]
     } else {
         authorNames.push(sAuthor)
     }
     for (const [sTitle, lines] of Object.entries(sonnetsByAuthor)) {
-        if (title === undefined) {
-            title = sTitle
-        }
+        title = title ?? sTitle
         if (titlesByAuthor[sAuthor] === undefined) {
             titlesByAuthor[sAuthor] = [sTitle] 
         } else {
             titlesByAuthor[sAuthor].push(sTitle)
         }
-        if (textLines === undefined) {
-            textLines = lines
-        }
+        textLines = textLines ?? lines
     }
-    if (titles === undefined) {
-        titles = titlesByAuthor[authorName]
-    }
+    titles = titles ?? titlesByAuthor[authorName]
 }
 
 export const defaultAuthorName = authorName
