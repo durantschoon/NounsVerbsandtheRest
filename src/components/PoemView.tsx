@@ -34,6 +34,8 @@ enum PoetryURLs {
 // };
 // enum poetryURLs {};
 
+const poetryURLs = Object.values(PoetryURLs).filter( k => typeof(k) === 'string' )
+
 /* For the following data structures, valid keys are 'default', 'current' or a URL from poetryURLs
    - 'current' initially points to the 'default' entry, but after
      poems are fetched, 'current' will point the values from a url.
