@@ -1,18 +1,16 @@
-// The prefix "Structured" is used to distinguish something like 
-// StructuredAuthorData from an instance of the AuthorData class.
-// StructuredAuthorData is a plain old javascript object and it might
-// be parsed to create an instance of AuthorData for example.
+import { z } from "zod";
+import * as schemas from "./type-definitions.zod";
 
-type AuthorName = string
-type Title = string
-type Line = string
+type AuthorName = z.infer<typeof schemas.authorName>
+type Title = z.infer<typeof schemas.title>
+type Line = z.infer<typeof schemas.line>
 
-interface StructuredPoemData {
-    [title: Title]: Line[];
-}
-interface StructuredAuthorData {
-    [author: AuthorName]: StructuredPoemData;
-}
-interface TitlesByAuthor {
-    [author: string]: Title[] 
-}
+// named "AuthorType" to disambiguate from class "Author"
+type AuthorType = z.infer<typeof schemas.author>
+
+type PoemData = z.infer<typeof schemas.poemData>
+// PoemsByAuthor was StructuredAuthorData
+type PoemsByAuthor = z.infer<typeof schemas.poemsByAuthor> 
+type TitlesByAuthor = z.infer<typeof schemas.titlesByAuthor>
+
+type Stats = z.infer<typeof schemas.stats>

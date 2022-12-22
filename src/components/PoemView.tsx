@@ -1,6 +1,7 @@
 // import PropTypes from 'prop-types';
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import * as R from "ramda";
+import z from "zod";
 
 import { Grid, Theme } from "@mui/material";
 import useMediaQuery from "@mui/material/useMediaQuery";
@@ -9,7 +10,7 @@ import PoemSelector from "./PoemSelector";
 import ParserChallenger from "./ParserChallenger";
 import SnackbarAlerts from "./SnackbarAlerts";
 
-import AuthorData, { defaultAuthorData } from "../dataClasses/AuthorData";
+import AuthorData, { defaultAuthorData, AuthorDataInterface } from "../dataClasses/Author";
 import { parsersByName, defaultParser } from "../dataClasses/Parser";
 import Poem from "../dataClasses/Poem";
 import sonnets, {
@@ -19,41 +20,47 @@ import sonnets, {
 
 import "./PoemView.css";
 
-// order poetry urls "best" to "worst" (highest priority first)
-// Define as an enum so that we can create a type FetchedKey below
-
-// debug
-enum PoetryURLs {
-  "https://poetrydb.org", 
-  "http://165.227.95.56:3000"
-}
-
-// enum PoetryURLs {
+// Order poetry urls "best" to "worst" (highest priority first)
+// Define as an enum so that we can create a types later
+// const PoetryURLs = z.enum([
 //   "http://fetch-should-fail.com",
 //   "http://165.227.95.56:3000",
-// };
-// enum poetryURLs {};
+// ]);
+// const PoetryURLs = z.enum([])
 
-const poetryURLs = Object.keys(PoetryURLs).filter( k => typeof(k) === 'string' )
+// debug values
+const PoetryURLs = z.enum(["https://poetrydb.org", "http://165.227.95.56:3000"]);
+type PoetryURL = z.infer<typeof PoetryURLs>;
 
-/* For the following data structures, valid keys are 'default', 'current' or a URL from poetryURLs
+/* For the following data structures where valid keys are 
+   'default', 'current' or a URL from poetryURLs
    - 'current' initially points to the 'default' entry, but after
-     poems are fetched, 'current' will point the values from a url.
-     For example, after a fetch, fetchedPoems['current'] will be the
-     poems fetched from a URL (the "best" from a choice, see above).
+     poems are fetched, 'current' will point the "best" values fetched from a url.
+     See PoetryURLs for definition of "best"
   */
 
-type FetchedKey = "default" | "current" | keyof typeof PoetryURLs
+const FetchedKeyEnum = z.enum(["default", "current", ...PoetryURLs.options]);
+type FetchedKey = z.infer<typeof FetchedKeyEnum>;
 
-type FetchedPoems = { 
-  [key in FetchedKey]?: StructuredAuthorData
-}
+type FetchedPoemsSemantic = { default: AuthorData, current: AuthorData } 
+type FetchedPoemsURL = { [P in PoetryURL]?: AuthorData }
+type FetchedPoems = FetchedPoemsSemantic & FetchedPoemsURL
 
 let fetchedPoems: FetchedPoems = { default: sonnets, current: sonnets };
-let authorNames = { default: defaultAuthorNames, current: defaultAuthorNames };
+
+type FetchedAuthorNamesSemantic = { default: AuthorName[], current: AuthorName[] } 
+type FetchedAuthorNamesURL = { [P in PoetryURL]?: AuthorName[] }
+type FetchedAuthorNames = FetchedAuthorNamesSemantic & FetchedAuthorNamesURL
+
+let authorNames: FetchedAuthorNames = { default: defaultAuthorNames, current: defaultAuthorNames };
+
+type AuthorTitles = { [author: string]: string[] } 
+type FetchedTitlesByAuthorSemantic = { default: AuthorTitles, current: AuthorTitles } 
+type FetchedTitlesByAuthorURL = { [P in PoetryURL]?: AuthorTitles }
+type FetchedTitlesByAuthor = FetchedTitlesByAuthorSemantic & FetchedTitlesByAuthorURL
 
 let titlesByAuthorClone = R.clone(defaultTitlesByAuthor);
-let titlesByAuthor = {
+let titlesByAuthor: FetchedTitlesByAuthor = {
   default: titlesByAuthorClone,
   current: titlesByAuthorClone,
 }
@@ -87,25 +94,26 @@ function PoemView() {
       - calls setAuthorData on the latest data
     */
   function setHighestRankFetchedPoem() {
-    for (let url of poetryURLs) {
-      if (fetchedPoems[url] && Object.keys(fetchedPoems[url]).length > 0) {
-        fetchedPoems["current"] = fetchedPoems[url];
-        authorNames["current"] = authorNames[url];
-        titlesByAuthor["current"] = titlesByAuthor[url];
+    for (let url of PoetryURLs.options) {
+      const poems = fetchedPoems[url]!;
+      if (Object.keys(poems).length > 0) {
+        fetchedPoems.current = fetchedPoems[url]!;
+        authorNames.current = authorNames[url]!;
+        titlesByAuthor.current = titlesByAuthor[url]!;
         break;
       }
     }
-    if (fetchedPoems["current"] !== fetchedPoems["default"]) {
+    if (fetchedPoems.current !== fetchedPoems["default"]) {
       // Choose the 2nd poet just because we want it to be
       // Emily Dickinson if the vanilla poemdb server comes up.
       // But set it to 0th if we end up with only one poet
       // because some other data has loaded.
-      const authorIndex = Math.min(1, authorNames["current"].length - 1);
-      const author = authorNames["current"][authorIndex];
+      const authorIndex = Math.min(1, authorNames.current.length - 1);
+      const author = authorNames.current[authorIndex];
 
-      const titles = titlesByAuthor["current"][author];
+      const titles = titlesByAuthor.current[author];
       const title = titles[0];
-      const lines = fetchedPoems["current"][author][title];
+      const lines = fetchedPoems.current[author][title];
 
       const currentPoem = new Poem(author, title, lines);
 
@@ -113,7 +121,7 @@ function PoemView() {
         new AuthorData({
           name: author,
           titles: titles,
-          authorNames: authorNames["current"],
+          authorNames: authorNames.current,
           currentPoem,
           currentParser: parser,
         })
@@ -139,16 +147,19 @@ function PoemView() {
       authorDataUpdater at the time of component creation). The handler version
       should call `authorDataApplyFunc` directly instead.
     */
-  function authorDataApplyFunc(aData, func, args) {
+
+  type AuthorDataMutator = (aD: AuthorData, args?: any[]) => void;
+
+  function authorDataApplyFunc(aData: AuthorData, func: AuthorDataMutator, args: any[]) {
     func(aData, ...(args ?? []));
     setAuthorData(aData);
   }
-  function authorDataUpdater(func, args) {
+  function authorDataUpdater(func: AuthorDataMutator, args?: any[]) {
     var aDataClone = R.clone(authorData); // deep copy for modification and resetting
     authorDataApplyFunc(aDataClone, func, args);
   }
 
-  function handleParserChange(event) {
+  function handleParserChange(event: React.ChangeEvent) {
     authorDataUpdater((aDataClone) => {
       aDataClone.currentParser = parsersByName[event.target.value];
     });
@@ -160,7 +171,7 @@ function PoemView() {
       const authorURL = url + "/author";
       let response = await fetch(authorURL);
       const authorJSON = await response.json();
-      const numAuthors = authorNames["current"].length;
+      const numAuthors = authorNames.current.length;
       let countAuthors = 0;
 
       authorNames[url] = authorJSON.authors;
@@ -212,7 +223,7 @@ function PoemView() {
     const author = authorData.name;
     const title = authorData.stagedTitleChange;
 
-    const newLines = fetchedPoems["current"][author][title];
+    const newLines = fetchedPoems.current[author][title];
 
     authorDataUpdater((aDataClone) => {
       aDataClone.poem = new Poem(author, title, newLines);
@@ -222,15 +233,15 @@ function PoemView() {
   // When the author name changes, set the current title to the first one fetched
   useEffect(() => {
     const author = authorData.name;
-    const newTitle = titlesByAuthor["current"]?.[author]?.[0];
+    const newTitle = titlesByAuthor.current?.[author]?.[0];
     // needed?
     // if (!fetchedPoems?.["current"]?.[author]?.[newTitle]) return;
-    const newLines = fetchedPoems["current"][author][newTitle];
+    const newLines = fetchedPoems.current[author][newTitle];
 
     authorDataUpdater((aDataClone) => {
       // update the possible titles, so the selector will populate before the
       // poem resets
-      aDataClone.titles = titlesByAuthor["current"][aDataClone.name];
+      aDataClone.titles = titlesByAuthor.current[aDataClone.name];
       aDataClone.poem = new Poem(author, newTitle, newLines);
     });
   }, [authorData.name]);

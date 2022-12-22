@@ -1,4 +1,4 @@
-const sonnets: StructuredAuthorData = {
+const sonnets: AuthorData = {
     "William Shakespeare": {
         'Sonnet 60': `Sonnet 60: Like As The Waves Make Towards The Pebbled Shore
 
@@ -44,27 +44,31 @@ const sonnets: StructuredAuthorData = {
 // the code below will automatically set variables for defaults
 
 let firstAuthorName: AuthorName | undefined
-let authorNames: AuthorName[] = []
 let firstTitle: Title | undefined
-let firstTitles: Title[] = []
-let firstTextLines: Line[] = []
+let firstTitles: Title[] | undefined
+let firstPoemLines: Line[] | undefined
+
+let authorNames: AuthorName[] = []
 let titlesByAuthor: TitlesByAuthor = {}
+
 for (const [sAuthor, sonnetsByAuthor] of Object.entries(sonnets)) {
     firstAuthorName = firstAuthorName ?? sAuthor
     authorNames.push(sAuthor)
+    titlesByAuthor[sAuthor] = []
     for (const [sTitle, lines] of Object.entries(sonnetsByAuthor)) {
         firstTitle = firstTitle ?? sTitle
         titlesByAuthor[sAuthor].push(sTitle)
-        firstTextLines = firstTextLines ?? lines
+        firstPoemLines = firstPoemLines ?? lines
     }
     firstTitles = firstTitles ?? titlesByAuthor[firstAuthorName]
 }
 
 export const defaultAuthorName = firstAuthorName
-export const defaultAuthorNames = authorNames
 export const defaultTitle = firstTitle
 export const defaultTitles = firstTitles
+export const defaultTextLines = firstPoemLines // TODO change in multiple files to defaultPoemLines
+
+export const defaultAuthorNames = authorNames
 export const defaultTitlesByAuthor = titlesByAuthor
-export const defaultTextLines = firstTextLines
 
 export default sonnets

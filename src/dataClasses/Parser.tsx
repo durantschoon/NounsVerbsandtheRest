@@ -56,4 +56,4 @@ for (let parser of parsers) {
 }
 const parsersByName = Object.freeze(byName);
 
-export { parsers, defaultParser, parsersByName, PoS, EnP };
+export { Parser, parsers, defaultParser, parsersByName, PoS, EnP };
