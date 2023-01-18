@@ -1,6 +1,17 @@
 import * as R from "ramda";
 
-const spannedWord = (mainClass, extraClasses, lineNum, wordNum, word) =>
+import Author from "./Author";
+import { FalseNegative, FalsePositive, Line, NounInverterRep, Tags } from "src/type-definitions";
+import { Parser } from "./Parser";
+
+
+const spannedWord = (
+  mainClass: string, 
+  extraClasses: string, 
+  lineNum: number, 
+  wordNum: number, 
+  word: string
+  ) =>
   `<span class="${mainClass} ${extraClasses}" id="word_${lineNum}_${wordNum}">${word}</span>`;
 
 const punct = /([.,\/#!$%\^&\*;:{}=\-_`~()']+)/gm;
@@ -15,9 +26,15 @@ const UNICODE_NBSP = "\u00A0";
   "noun" -> "non-noun" or vice-versa)
   */
 export class NounInverter {
-  constructor(aData) {
-    this.parser = aData.currentParser;
-    const lines = (this.poemTextLines = aData.currentPoem.lines);
+  falsePositiveCount: FalsePositive
+  falseNegativeCount: FalseNegative
+  parser: Parser;
+  poemTextLines: Line[];
+  rep: NounInverterRep;
+  taggedWordsHTML: string | undefined;
+  constructor(author: Author) {
+    this.parser = author.currentParser;
+    const lines = (this.poemTextLines = author.currentPoem.lines);
 
     this.falsePositiveCount = 0;
     this.falseNegativeCount = 0;
@@ -34,22 +51,22 @@ export class NounInverter {
   }
 
   // line, word are 1-based
-  isInverted(line, word) {
+  isInverted(line: number, word: number) {
     return this.rep[line - 1][word - 1];
   }
 
   // line, word are 1-based
-  setInverted(line, word, wordIsInverted) {
-    this.rep[line - 1][word - 1] = wordIsInverted;
+  setInverted(line: number, word: number, wordIsInverted: boolean) {
+    this.rep[line-1][word-1] = wordIsInverted;
   }
 
   // line, word are 1-based
-  flip(line, word) {
+  flip(line: number, word: number) {
     this.setInverted(line, word, !this.isInverted(line, word));
   }
 
   // lineNum is 1-based
-  initLineIfNeeded(lineNum, lineLength) {
+  initLineIfNeeded(lineNum: number, lineLength: number) {
     if (this.rep.length === 0) return;
     if (this.rep[lineNum - 1].length === 0) {
       this.rep[lineNum - 1] = new Array(lineLength).fill(false);
@@ -58,15 +75,15 @@ export class NounInverter {
 
   // Return the HTML of all the words tagged (as either noun or non-noun)
   _getTaggedWordsHTML() {
-    const lines = this.poemTextLines;
+    const lines: Line[] = this.poemTextLines;
     const parser = this.parser;
 
     if (!lines) {
       return "";
     }
-    let outlined = [];
+    let outlined: string[] = [];
 
-    const addNounSpans = (tagged, lineNum) => {
+    const addNounSpans = (tagged: Tags, lineNum: number) => {
       let mainClass;
       let extraClasses;
       let wordNum = 1; // 1-based
@@ -92,7 +109,7 @@ export class NounInverter {
       - Recombine the spaces and words in the right order, save as outlined
       - mark the current NounInverter as cloneable now that initialization is complete
     */
-    lines.forEach((line, index) => {
+    lines.forEach((line: Line, index: number) => {
       let lineNum = index + 1;
 
       if (line === "") {
@@ -101,9 +118,9 @@ export class NounInverter {
       }
       const matchedSpacePunct = line
         .match(spacePunct)
-        .map((s) => s.replace(/ /g, UNICODE_NBSP));
+        ?.map((s) => s.replace(/ /g, UNICODE_NBSP)) || [];
 
-      let taggedWords = parser.tagWordsInLine(line.replaceAll(punct, ""));
+      let taggedWords = parser.tagWordsInLine(line.replaceAll(punct, "")) as unknown as Tags;
       this.initLineIfNeeded(lineNum, taggedWords.length);
 
       // even out the lengths of the two arrays for zipping
@@ -170,14 +187,15 @@ let memoCache = new Map();
   memoCache) or creates a new one.
 */
 export class NounInverterFactory {
-  constructor(aData) {
-    this.get(aData);
+  inverter: any;
+  constructor(author: Author) {
+    this.get(author);
   }
 
-  get(aData) {
-    const id = nounInverterID(aData);
+  get(author: Author) {
+    const id = nounInverterID(author);
     if (!memoCache.has(id)) {
-      memoCache.set(id, new NounInverter(aData));
+      memoCache.set(id, new NounInverter(author));
     }
     return (this.inverter = memoCache.get(id));
   }

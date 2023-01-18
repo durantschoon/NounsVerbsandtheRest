@@ -1,33 +1,44 @@
-import React, { useState, useEffect } from "react";
-
-import InputLabel from "@mui/material/InputLabel";
+import { useState, useEffect } from "react";
 
 import ParserSelector from "./ParserSelector";
 import WordStats from "./WordStats";
+import { Parser } from "../dataClasses/Parser";
 
-function ParserChallenger({
-  authorData,
-  authorDataUpdater,
-  authorDataApplyFunc,
-  parser,
-}) {
+import { 
+  AuthorClone, 
+  AuthorCloneUpdatorType, 
+  AuthorCloneUpdatorWithWordType,
+  AuthorCloneApplyWordFuncType,
+  AuthorUpdatorType,
+  ClickEvent
+} from "src/type-definitions";
+
+type Props = {
+  author: AuthorClone,
+  authorUpdater: AuthorUpdatorType,
+  authorApplyWordFunc: AuthorCloneApplyWordFuncType
+  parser: Parser,
+}
+
+function ParserChallenger({author, authorUpdater, authorApplyWordFunc, parser}: Props) {
   const [stats, setStats] = useState({ falsePos: 0, falseNeg: 0 });
 
-  function _drawNounOutlines(aDataClone) {
-    aDataClone.recomputeNounOutlines();
+  const _drawNounOutlines: AuthorCloneUpdatorType = 
+  (author : AuthorClone) => {
+    author.recomputeNounOutlines();
 
     /* These are the expected ways _drawNounOutlines will be called
 
       1. from the useEffect in this component (when the poem title or parser
-         changes) `authorDataUpdater` should start with the current authorData,
-         clone it before calling this and set authorData to the clone in the
+         changes) `authorUpdater` should start with the current author,
+         clone it before calling this and set author to the clone in the
          usual way.
 
       2. from a click on a word in the text-output. In this case, there was a
-         bound version of an authorData clone (that seems to be the right one to
+         bound version of an author clone (that seems to be the right one to
          use) from the time the click handler was created. Changes to this clone
-         are made from authorDataApplyFunc which will be used ultimately to
-         update the official authorData state in an ancestor component.
+         are made from authorApplyFunc which will be used ultimately to
+         update the official author state in an ancestor component.
 
     */
     const stats = {
@@ -37,34 +48,37 @@ function ParserChallenger({
     setStats(stats);
 
     // update the clone before binding it in the click handlers
-    aDataClone.updateCurrentStats(stats);
-    _addClickHandlersToSpans(aDataClone);
+    author.updateCurrentStats(stats);
+    _addClickHandlersToSpans(author);
   }
-  const drawNounOutlinesUpdater = () => authorDataUpdater(_drawNounOutlines);
+  // TODO: verify this rewrite works
+  const drawNounOutlinesUpdater = () => authorUpdater(_drawNounOutlines);
 
   // changing the poem (lines) or parser will trigger redrawing of noun outlines
   useEffect(drawNounOutlinesUpdater, [
-    authorData.currentPoem.title,
-    authorData.currentParser.name,
+    author.currentPoem.title,
+    author.currentParser.name,
   ]);
 
-  function _invertNoun(aDataClone, line, word) {
-    aDataClone.nounInverter.flip(line, word);
-    _drawNounOutlines(aDataClone);
+  const _invertNoun : AuthorCloneUpdatorWithWordType = 
+  (author: AuthorClone, line: number, word: number) => {
+    author.nounInverter!.flip(line, word);
+    _drawNounOutlines(author);
   }
-  const applyInvertNouns = (aDataClone, line, word) =>
-    authorDataApplyFunc(aDataClone, _invertNoun, [line, word]);
+  const applyInvertNouns = (author: AuthorClone, line: number, word: number) =>
+    authorApplyWordFunc(author, _invertNoun, line, word);
 
   // clicking on a word should also trigger redrawing of noun outlines
-  function _addClickHandlersToSpans(aDataClone) {
+  function _addClickHandlersToSpans(author: AuthorClone) {
     const classNames = ["noun", "non-noun"];
     for (let className of classNames) {
-      const spans = document.getElementsByClassName(className);
+      const spans = Array.from(document.getElementsByClassName(className));
       for (let span of spans) {
-        span.addEventListener("click", (event) => {
+        // span.addEventListener("click", (event: ClickEvent) : void => {
+        span.addEventListener("click", (event: any) : void => {
           event.stopPropagation();
           const [line, word] = event.target.id.split("_").slice(1);
-          applyInvertNouns(aDataClone, +line, +word);
+          applyInvertNouns(author, +line, +word);
         });
       }
     }
@@ -73,7 +87,7 @@ function ParserChallenger({
   return (
     <>
       <ParserSelector
-        {...{ authorDataUpdater, parserName: authorData.currentParser.name }}
+        {...{ authorUpdater, parserName: author.currentParser.name }}
       />
 
       <h1> Correct what is and is not a noun </h1>

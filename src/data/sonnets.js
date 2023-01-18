@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.defaultTitlesByAuthor = exports.defaultAuthorNames = exports.defaultTextLines = exports.defaultTitles = exports.defaultTitle = exports.defaultAuthorName = void 0;
+exports.defaultTitlesByAuthor = exports.defaultAuthorNames = exports.defaultPoemLines = exports.defaultTitles = exports.defaultTitle = exports.defaultAuthorName = void 0;
 var sonnets = {
     "William Shakespeare": {
         'Sonnet 60': "Sonnet 60: Like As The Waves Make Towards The Pebbled Shore\n\n    Like as the waves make towards the pebbled shore,\n    So do our minutes hasten to their end;\n    Each changing place with that which goes before,\n    In sequent toil all forwards do contend.\n    Nativity, once in the main of light,\n    Crawls to maturity, wherewith being crowned,\n    Crooked eclipses \u2018gainst his glory fight,\n    And Time that gave doth now his gift confound.\n    Time doth transfix the flourish set on youth\n    And delves the parallels in beauty\u2019s brow,\n    Feeds on the rarities of nature\u2019s truth,\n    And nothing stands but for his scythe to mow:\n      And yet to times in hope, my verse shall stand\n      Praising thy worth, despite his cruel hand.".split("\n"),
@@ -32,7 +32,7 @@ for (var _i = 0, _a = Object.entries(sonnets); _i < _a.length; _i++) {
 exports.defaultAuthorName = firstAuthorName;
 exports.defaultTitle = firstTitle;
 exports.defaultTitles = firstTitles;
-exports.defaultTextLines = firstPoemLines; // TODO change in multiple files to defaultPoemLines
+exports.defaultPoemLines = firstPoemLines; // TODO change in multiple files to defaultPoemLines
 exports.defaultAuthorNames = authorNames;
 exports.defaultTitlesByAuthor = titlesByAuthor;
 exports.default = sonnets;

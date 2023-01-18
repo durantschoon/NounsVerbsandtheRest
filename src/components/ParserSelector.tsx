@@ -4,13 +4,25 @@ import FormControlLabel from "@mui/material/FormControlLabel";
 import FormControl from "@mui/material/FormControl";
 import FormLabel from "@mui/material/FormLabel";
 
+import { 
+  AuthorClone, 
+  AuthorUpdatorType,
+  ChangeEvent 
+} from "../type-definitions.d";
+
 import ParserDescriptions from "./ParserDescriptions";
 import { defaultParser, parsersByName } from "../dataClasses/Parser";
 
-function ParserSelector({ authorDataUpdater, parserName }) {
-  function handleParserChange(event) {
-    authorDataUpdater((aDataClone) => {
-      aDataClone.parser = parsersByName[event.target.value];
+type Props = { 
+  authorUpdater: AuthorUpdatorType, 
+  parserName: string 
+}
+
+function ParserSelector({authorUpdater, parserName} : Props) {
+  // function handleParserChange(event: ChangeEvent) {
+  function handleParserChange(event: any) {
+    authorUpdater((clone: AuthorClone) => {
+      clone.currentParser = parsersByName[event.target.value];
     });
   }
 

@@ -5,17 +5,28 @@ import InputLabel from "@mui/material/InputLabel";
 import MenuItem from "@mui/material/MenuItem";
 import Select from "@mui/material/Select";
 
+import Author from "../dataClasses/Author";
 import AuthorProgress from "./AuthorProgress";
+import { 
+  AuthorName, 
+  AuthorClone, 
+  AuthorUpdatorType,
+  LoadingProgress,
+} from "src/type-definitions";
 
-function capitalizeFirstLetter(string) {
-  return string.charAt(0).toUpperCase() + string.slice(1);
+function capitalizeFirstLetter(s: string) {
+  return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
 // generic selector used for authors and titles
-function selector(selName, value, setter, valList) {
+function selector(
+  selName: string, 
+  value: string, 
+  setter: (s: string) => void, 
+  valList: string[]) {
   let menuKey = 0;
   return (
-    <FormControl dense="true">
+    <FormControl margin="dense">
       <InputLabel id={`${selName}-select-label`}>
         {capitalizeFirstLetter(selName)}
       </InputLabel>
@@ -36,33 +47,39 @@ function selector(selName, value, setter, valList) {
   );
 }
 
-function PoemSelector({ authorData, authorDataUpdater, loadingProgress }) {
+type Props = {
+  author: Author, 
+  authorUpdater: AuthorUpdatorType, 
+  loadingProgress: LoadingProgress
+}
+
+function PoemSelector({ author, authorUpdater, loadingProgress }: Props) {
   function authorSelector() {
-    function setAuthorName(name) {
-      return authorDataUpdater((aDataClone) => {
-        aDataClone.name = name;
+    function setAuthorName(name: AuthorName) {
+      return authorUpdater((clone: AuthorClone) => {
+        clone.name = name;
       });
     }
-    const { name, authorNames } = authorData;
+    const { name, authorNames } = author;
     return selector("author", name, setAuthorName, authorNames);
   }
 
   function titleSelector() {
-    function setTitle(title) {
-      return authorDataUpdater((aDataClone) => {
+    function setTitle(title: string) {
+      return authorUpdater((aDataClone) => {
         aDataClone.stagedTitleChange = title;
       });
     }
-    const title = authorData.currentPoem.title;
-    const titles = authorData.titles;
+    const title = author.currentPoem.title;
+    const titles = author.titles;
     return selector("title", title, setTitle, titles);
   }
 
-  const joinedLines = authorData.currentPoem.lines
-    ? authorData.currentPoem.lines.join("\n")
+  const joinedLines = author.currentPoem.lines
+    ? author.currentPoem.lines.join("\n")
     : "";
 
-  const aD = authorData;
+  const aD = author;
 
   return (
     <>

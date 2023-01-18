@@ -1,11 +1,15 @@
+import { AuthorName, Line, Title } from 'src/type-definitions'
 import sonnets, {
     defaultAuthorName as dAuthorName,
     defaultTitle as dTitle,
-    defaultTextLines as dLines,
+    defaultPoemLines as dLines,
 } from '../data/sonnets'
 
 export default class Poem {
-    constructor(author, title, lines) {
+    author: AuthorName
+    title: Title
+    lines: Line[]
+    constructor(author: AuthorName, title: Title, lines: Line[]) {
         this.author = author
         this.title = title
         this.lines = lines

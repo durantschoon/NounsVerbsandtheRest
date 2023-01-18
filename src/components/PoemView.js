@@ -91,7 +91,7 @@ var useMediaQuery_1 = __importDefault(require("@mui/material/useMediaQuery"));
 var PoemSelector_1 = __importDefault(require("./PoemSelector"));
 var ParserChallenger_1 = __importDefault(require("./ParserChallenger"));
 var SnackbarAlerts_1 = __importDefault(require("./SnackbarAlerts"));
-var AuthorData_1 = __importStar(require("../dataClasses/AuthorData"));
+var Author_1 = __importStar(require("../dataClasses/Author"));
 var Parser_1 = require("../dataClasses/Parser");
 var Poem_1 = __importDefault(require("../dataClasses/Poem"));
 var sonnets_1 = __importStar(require("../data/sonnets"));
@@ -105,7 +105,7 @@ require("./PoemView.css");
 // const PoetryURLs = z.enum([])
 // debug values
 var PoetryURLs = zod_1.default.enum(["https://poetrydb.org", "http://165.227.95.56:3000"]);
-/* For the following data structures where valid keys are
+/* For the following data structures with these keys being valid
    'default', 'current' or a URL from poetryURLs
    - 'current' initially points to the 'default' entry, but after
      poems are fetched, 'current' will point the "best" values fetched from a url.
@@ -122,7 +122,7 @@ var titlesByAuthor = {
 function PoemView() {
     var _this = this;
     var _a = (0, react_1.useState)(Parser_1.defaultParser), parser = _a[0], setParser = _a[1];
-    var _b = (0, react_1.useState)(AuthorData_1.defaultAuthorData), authorData = _b[0], setAuthorData = _b[1];
+    var _b = (0, react_1.useState)(Author_1.defaultAuthorData), authorData = _b[0], setAuthorData = _b[1];
     var _c = (0, react_1.useState)({
         open: false,
         severity: "info",
@@ -165,7 +165,7 @@ function PoemView() {
             var title = titles[0];
             var lines = fetchedPoems.current[author][title];
             var currentPoem = new Poem_1.default(author, title, lines);
-            setAuthorData(new AuthorData_1.default({
+            setAuthorData(new Author_1.default({
                 name: author,
                 titles: titles,
                 authorNames: authorNames.current,
@@ -274,7 +274,7 @@ function PoemView() {
         var title = authorData.stagedTitleChange;
         var newLines = fetchedPoems.current[author][title];
         authorDataUpdater(function (aDataClone) {
-            aDataClone.poem = new Poem_1.default(author, title, newLines);
+            aDataClone.setPoem((0, Poem_1.default)(author, title, newLines));
         });
     }, [authorData.stagedTitleChange]);
     // When the author name changes, set the current title to the first one fetched
@@ -289,7 +289,7 @@ function PoemView() {
             // update the possible titles, so the selector will populate before the
             // poem resets
             aDataClone.titles = titlesByAuthor.current[aDataClone.name];
-            aDataClone.poem = new Poem_1.default(author, newTitle, newLines);
+            aDataClone.setPoem(new Poem_1.default(author, newTitle, newLines));
         });
     }, [authorData.name]);
     return (react_1.default.createElement("section", null,

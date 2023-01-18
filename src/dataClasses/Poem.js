@@ -11,4 +11,4 @@ var Poem = /** @class */ (function () {
     return Poem;
 }());
 exports.default = Poem;
-exports.defaultPoem = new Poem(sonnets_1.defaultAuthorName, sonnets_1.defaultTitle, sonnets_1.defaultTextLines);
+exports.defaultPoem = new Poem(sonnets_1.defaultAuthorName, sonnets_1.defaultTitle, sonnets_1.defaultPoemLines);

@@ -3,13 +3,19 @@ import { Tag } from "en-pos";
 
 import * as R from "ramda";
 
+import { Line, ParsersByName } from "src/type-definitions";
 class Parser {
-  constructor(name) {
+  name: string;
+  constructor(name: string) {
     this.name = name;
+  }
+  tagWordsInLine(arg0: any) {
+    throw new Error("Method not implemented.");
   }
 }
 
 class PartsOfSpeech extends Parser {
+  info: { title: string; body: string; link: string; };
   constructor() {
     super("parts-of-speech");
     this.info = {
@@ -18,7 +24,7 @@ class PartsOfSpeech extends Parser {
       link: "https://github.com/dariusk/pos-js#readme",
     };
   }
-  tagWordsInLine(line) {
+  tagWordsInLine(line: Line) {
     let words = new Lexer().lex(line);
     let tagger = new Tagger();
     return tagger.tag(words);
@@ -26,6 +32,7 @@ class PartsOfSpeech extends Parser {
 }
 
 class EnPos extends Parser {
+  info: { title: string; body: string; link: string; };
   constructor() {
     super("en-pos");
     this.info = {
@@ -34,9 +41,9 @@ class EnPos extends Parser {
       link: "https://github.com/finnlp/en-pos#readme",
     };
   }
-  tagWordsInLine(line) {
-    line = R.filter(R.identity, line.split(/\s/));
-    var tags = new Tag(line)
+  tagWordsInLine(line: string) {
+    const lines = R.filter(R.identity, line.split(/\s/));
+    var tags = new Tag(lines)
       .initial() // initial dictionary and pattern based tagging
       .smooth().tags; // further context based smoothing
     const tagged = tags.map((tag, i) => [line[i], tag]);
@@ -50,10 +57,10 @@ const EnP = new EnPos();
 const parsers = [PoS, EnP];
 const defaultParser = parsers[0];
 
-let byName = {};
+let buildParsersByName: ParsersByName = {};
 for (let parser of parsers) {
-  byName[parser.name] = parser;
+  buildParsersByName[parser.name] = parser;
 }
-const parsersByName = Object.freeze(byName);
+const parsersByName = Object.freeze(buildParsersByName);
 
 export { Parser, parsers, defaultParser, parsersByName, PoS, EnP };

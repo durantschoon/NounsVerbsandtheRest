@@ -1,6 +1,8 @@
-const sonnets: AuthorData = {
+import { AuthorName, Title, Line, PoemsByAuthor, TitlesByAuthor } from "src/type-definitions"
+
+const sonnets: PoemsByAuthor = {
     "William Shakespeare": {
-        'Sonnet 60': `Sonnet 60: Like As The Waves Make Towards The Pebbled Shore
+        "Sonnet 60": `Sonnet 60: Like As The Waves Make Towards The Pebbled Shore
 
     Like as the waves make towards the pebbled shore,
     So do our minutes hasten to their end;
@@ -63,10 +65,10 @@ for (const [sAuthor, sonnetsByAuthor] of Object.entries(sonnets)) {
     firstTitles = firstTitles ?? titlesByAuthor[firstAuthorName]
 }
 
-export const defaultAuthorName = firstAuthorName
-export const defaultTitle = firstTitle
-export const defaultTitles = firstTitles
-export const defaultTextLines = firstPoemLines // TODO change in multiple files to defaultPoemLines
+export const defaultAuthorName: AuthorName = firstAuthorName!
+export const defaultTitle: Title = firstTitle!
+export const defaultTitles: Title[] = firstTitles!
+export const defaultPoemLines: Line[] = firstPoemLines!
 
 export const defaultAuthorNames = authorNames
 export const defaultTitlesByAuthor = titlesByAuthor

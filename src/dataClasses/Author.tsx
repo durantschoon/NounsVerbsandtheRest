@@ -1,43 +1,68 @@
 import { z } from "zod";
 
-import { author as authorSchema} from "../type-definitions.zod"
-
-import { NounInverterFactory } from "./NounInverter";
-import { Parser } from "./Parser";
-import Poem from "./Poem";
+import { NounInverter, NounInverterFactory } from "./NounInverter";
+import { Parser, defaultParser } from "./Parser";
+import Poem, { defaultPoem } from "./Poem";
 
 import {
   defaultAuthorName,
   defaultAuthorNames,
   defaultTitles,
 } from "../data/sonnets";
-import { AuthorType } from "src/type-definitions";
+import { AuthorName, AuthorData, Title, Stats } from "src/type-definitions";
 
-// this is defined in a prototypical way to make use of zod parsing.
-export default class Author {};
-Author.prototype.constructor = function (this: AuthorType, data: Author) {
-  Object.assign(this, authorSchema.parse(data));
-  this.nounInverterFactory = new NounInverterFactory(this);
-  this.stagedTitleChange = this.currentPoem.title;
-  this.recomputeNounOutlines();
-};
-Author.prototype.recomputeNounOutlines = function (this: AuthorType) {
-  this.nounInverter = this.nounInverterFactory.get(this);
-  this.nounInverter!.recomputeNounOutlines();
-}
-// TODO go through code and replace setters for poem and parser with these
-Author.prototype.setPoem = function (this: AuthorType, newPoem: Poem) {
-  this.currentPoem = newPoem;
-  this.recomputeNounOutlines!();
-}
-Author.prototype.setParser = function (this: AuthorType, newParser: Parser) {
-  this.currentParser = newParser;
-  this.recomputeNounOutlines!();
-}
-Author.prototype.updateCurrentStats = function (this: AuthorType, stats: Stats) {
-  const nounInverter = this.nounInverter;
-  if (nounInverter) {
-    nounInverter.falsePositiveCount = falsePos;
-    nounInverter.falseNegativeCount = falseNeg;
+export default class Author {
+  name: AuthorName;
+  authorNames: AuthorName[]; // current list of alternative author names
+  nounInverterFactory: NounInverterFactory;
+  titles: Title[];
+  stagedTitleChange: Title;
+  currentPoem: Poem;
+  nounInverter: NounInverter | undefined;
+  currentParser: Parser;
+
+  constructor(data: AuthorData) {
+    // TS does not allow Object.assign by itself
+    //   because it cannot be certain currentPoem is set
+    // Object.assign(this, data); 
+    this.name = data.name;
+    this.titles = data.titles;
+    this.authorNames = data.authorNames;
+    this.currentPoem = data.currentPoem;
+    this.currentParser = data.currentParser;
+    this.nounInverterFactory = new NounInverterFactory(this);
+    this.stagedTitleChange = this.currentPoem.title;
+    this.recomputeNounOutlines();
   }
-}s
+  
+  recomputeNounOutlines(this: Author) {
+    this.nounInverter = this.nounInverterFactory.get(this);
+    this.nounInverter!.recomputeNounOutlines();
+  }
+  
+  setPoem(this: Author, newPoem: Poem) {
+    this.currentPoem = newPoem;
+    this.recomputeNounOutlines!();
+  }
+
+  setParser(this: Author, newParser: Parser) {
+    this.currentParser = newParser;
+    this.recomputeNounOutlines!();
+  }
+
+  updateCurrentStats(this: Author,  {falsePos, falseNeg}: Stats) {
+    const nounInverter = this.nounInverter;
+    if (nounInverter) {
+      nounInverter.falsePositiveCount = falsePos;
+      nounInverter.falseNegativeCount = falseNeg;
+    }
+  }
+};
+
+export const defaultAuthor = new Author({
+  name: defaultAuthorName,
+  titles: defaultTitles,
+  authorNames: defaultAuthorNames,
+  currentPoem: defaultPoem,
+  currentParser: defaultParser,
+});
